@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 网络 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- 定位：前台精确定位即可满足跑步采集需求 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- 前台服务（Android 14 要求按类型单独声明） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- Android 13+ 通知运行时权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      说明：刻意【不】申请 ACCESS_BACKGROUND_LOCATION。
+      本 App 定位为“运动中亮屏/前台”采集，轨迹收集完全发生在前台 Service + 前台通知期间，
+      不需要后台定位权限；申请它还会显著增加上架审核与权限说明成本。
+    -->
+
+    <application
+        android:name=".RunPulseApp"
+        android:allowBackup="true"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:label="@string/app_name"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.RunPulse">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 历史记录与详情页（仅应用内跳转，不对外导出） -->
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.detail.SessionDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- 轨迹采集前台 Service，类型为 location -->
+        <service
+            android:name=".tracking.TrackingService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <!-- 分享海报图片的 FileProvider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

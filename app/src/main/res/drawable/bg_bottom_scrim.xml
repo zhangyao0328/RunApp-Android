@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 地图底部操作区的渐变遮罩：顶部透明渐变到底部深黑，保证按钮在地图上可读 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="270"
+        android:startColor="#00000000"
+        android:endColor="#CC000000" />
+</shape>

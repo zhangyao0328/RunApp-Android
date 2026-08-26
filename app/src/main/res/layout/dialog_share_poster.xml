@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 分享海报弹窗：实时预览 + 模板切换 + 分享。NestedScrollView 兜底小屏溢出 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FF141824"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/share_poster_title"
+            android:textColor="#F8FAFC"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/desc_close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+    </LinearLayout>
+
+    <!-- 预览区：4:5 比例，高度在代码里按宽度计算 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp">
+
+        <ImageView
+            android:id="@+id/ivPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FF0B1220"
+            android:scaleType="fitXY" />
+
+        <!-- 照片模板交互编辑器（与 ivPreview 同尺寸逻辑，PHOTO 页签时显示） -->
+        <com.runpulse.app.ui.share.PhotoPosterEditorView
+            android:id="@+id/photoEditor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FF0B1220"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
+    <!-- 模板切换 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tabClassic"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/share_template_classic"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tabMap"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/share_template_map"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tabPhoto"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/share_template_photo"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- 操作行 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnPickPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/share_pick_photo"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnAddTrack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/share_add_track"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="140dp"
+            android:text="@string/share_action" />
+    </LinearLayout>
+</LinearLayout>
+</androidx.core.widget.NestedScrollView>

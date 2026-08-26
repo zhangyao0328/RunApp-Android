@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RunPulse</string>
+    <string name="tracking_channel_name">运动轨迹采集</string>
+    <string name="tracking_notification_title">正在记录运动轨迹</string>
+
+    <string name="btn_history">历史记录</string>
+    <string name="btn_import_test_data">导入测试数据</string>
+
+    <!-- 详情页统计行 -->
+    <string name="stats_distance">距离</string>
+    <string name="stats_duration">时长</string>
+    <string name="stats_avg_pace">平均配速</string>
+    <string name="stats_avg_speed">平均速度</string>
+    <string name="stats_elevation">累计爬升</string>
+
+    <!-- 教练点评 -->
+    <string name="coach_title">AI 教练点评</string>
+    <string name="coach_empty">本次运动暂无 AI 点评</string>
+
+    <!-- 地图悬浮按钮 -->
+    <string name="desc_locate">定位到我的位置</string>
+    <string name="desc_zoom_in">放大地图</string>
+    <string name="desc_zoom_out">缩小地图</string>
+    <string name="desc_fit_track">显示完整轨迹</string>
+    <string name="desc_share">分享运动海报</string>
+    <string name="share_poster_title">分享运动海报</string>
+    <string name="share_template_classic">经典</string>
+    <string name="share_template_map">地图</string>
+    <string name="share_template_photo">照片</string>
+    <string name="share_pick_photo">换张照片</string>
+    <string name="share_add_track">＋添加轨迹</string>
+    <string name="share_edit_distance">距离 km</string>
+    <string name="share_edit_duration">时长</string>
+    <string name="share_edit_pace">配速/均速</string>
+    <string name="share_edit_elevation">爬升 m</string>
+    <string name="share_edit_reset">恢复默认</string>
+    <string name="share_action">分享</string>
+    <string name="desc_close">关闭</string>
+</resources>

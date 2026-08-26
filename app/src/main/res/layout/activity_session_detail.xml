@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 会话详情页：轨迹地图 + 统计行 + AI 教练点评列表 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 轨迹地图：地图 view 由代码插入到最底层，控制按钮组悬浮在右下（参考 Strava 详情页） -->
+        <FrameLayout
+            android:id="@+id/mapContainer"
+            android:layout_width="match_parent"
+            android:layout_height="320dp">
+
+            <!-- 分享海报按钮：地图右上角（Strava 同款位置） -->
+            <ImageButton
+                android:id="@+id/btnShare"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_map_button"
+                android:contentDescription="@string/desc_share"
+                android:elevation="4dp"
+                android:padding="11dp"
+                android:src="@drawable/ic_share" />
+
+            <LinearLayout
+                android:id="@+id/mapControls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/btnFitTrack"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_map_button"
+                    android:contentDescription="@string/desc_fit_track"
+                    android:elevation="4dp"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_fit_track" />
+
+                <ImageButton
+                    android:id="@+id/btnZoomIn"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_map_button"
+                    android:contentDescription="@string/desc_zoom_in"
+                    android:elevation="4dp"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_zoom_in" />
+
+                <ImageButton
+                    android:id="@+id/btnZoomOut"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_map_button"
+                    android:contentDescription="@string/desc_zoom_out"
+                    android:elevation="4dp"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_zoom_out" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 统计行：距离 / 时长 / 配速或速度 / 爬升 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_distance"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_duration"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvDetailPaceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_avg_pace"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailPace"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_elevation"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailElevation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/coach_title"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCoachEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="@string/coach_empty"
+            android:textColor="?android:attr/textColorSecondary"
+            android:visibility="gone" />
+
+        <!-- 嵌套在 ScrollView 内，关闭自身滚动交给外层 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerCoach"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never" />
+    </LinearLayout>
+</ScrollView>

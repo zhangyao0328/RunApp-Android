@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 首页：全屏地图 + 顶部状态悬浮卡 + 底部操作区（悬浮在地图上） -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 全屏地图：容器由代码注入 TrackMapFactory 创建的实现（Mapbox 或 Canvas 兜底） -->
+    <FrameLayout
+        android:id="@+id/trackPreviewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 顶部：状态 / 距离 / 时长悬浮卡片（topMargin 由 fitSystemBars 叠加状态栏/刘海高度） -->
+    <LinearLayout
+        android:id="@+id/topStatusCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_overlay_card"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="未开始"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="距离：0.00 km"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="时长：00:00:00"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 右侧中部：定位悬浮按钮（避开顶部状态卡与底部按钮区，参考 Strava/Keep 位置） -->
+    <ImageButton
+        android:id="@+id/btnLocate"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_map_button"
+        android:contentDescription="@string/desc_locate"
+        android:elevation="4dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_my_location" />
+
+    <!-- 底部：操作按钮区，渐变遮罩保证在地图上的可读性（bottomPadding 由 fitSystemBars 叠加虚拟键高度） -->
+    <LinearLayout
+        android:id="@+id/bottomPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_bottom_scrim"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp">
+
+        <Button
+            android:id="@+id/btnRun"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始跑步" />
+
+        <Button
+            android:id="@+id/btnTrail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始越野" />
+
+        <Button
+            android:id="@+id/btnBike"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始骑行" />
+
+        <Button
+            android:id="@+id/btnStop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="结束运动" />
+
+        <Button
+            android:id="@+id/btnHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_history" />
+
+        <!-- 调试入口：仅 DEBUG 构建可见，导入 assets 中的 GPX 测试数据 -->
+        <Button
+            android:id="@+id/btnImport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_import_test_data"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnBattery"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="防杀设置：加入电池优化白名单"
+            android:textColor="#CCFFFFFF" />
+    </LinearLayout>
+</FrameLayout>

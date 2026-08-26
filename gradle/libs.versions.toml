@@ -1,0 +1,57 @@
+# 依赖版本目录（Version Catalog），所有版本号集中在此维护
+[versions]
+agp = "8.5.2"
+kotlin = "2.0.20"
+ksp = "2.0.20-1.0.25"
+coreKtx = "1.13.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+activity = "1.9.1"
+lifecycle = "2.8.4"
+room = "2.6.1"
+workmanager = "2.9.1"
+retrofit = "2.11.0"
+okhttp = "4.12.0"
+playLocation = "21.3.0"
+coroutines = "1.8.1"
+# 沉浸式状态栏/导航栏/刘海适配（Maven Central）
+immersionbar = "3.2.2"
+# XPopup 弹窗组件（JitPack）
+xpopup = "2.10.0"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
+
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playLocation" }
+
+# Mapbox Maps SDK v11（轨迹地图可选实现，需 mapbox token）
+mapbox = "com.mapbox.maps:android:11.5.1"
+
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# 沉浸式系统栏适配
+immersionbar = { group = "com.geyifeng.immersionbar", name = "immersionbar", version.ref = "immersionbar" }
+# XPopup 弹窗
+xpopup = { group = "com.github.li-xiaojun", name = "XPopup", version.ref = "xpopup" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

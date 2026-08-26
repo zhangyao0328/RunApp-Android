@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider 共享目录：分享海报 PNG（外部应用私有目录，免存储权限且 adb 可拉取验证） -->
+<paths>
+    <external-files-path
+        name="posters"
+        path="Pictures/posters/" />
+</paths>

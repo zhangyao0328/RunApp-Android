@@ -100,7 +100,7 @@ runpulse.apiKey=your-api-key
 
 ## 坐标系说明
 
-GPS 采集的轨迹点是 WGS84 坐标；国内地图底图（Mapbox 中国/高德/腾讯）使用 GCJ02（火星坐标系），直接上图会偏移数百米。`ui/map/CoordinateTransform.kt` 提供标准 eviltransform WGS84→GCJ02 转换（含 outOfChina 判断，境外不转换）。Canvas 自绘无底图，不做转换。
+GPS 采集的轨迹点是 WGS84 坐标。api.mapbox.com 的标准底图（Style.STANDARD）中国区路网是**未偏移的 WGS84**（与高德 GCJ02 瓦片叠加实测验证），因此 Mapbox 实现直接用原始坐标上图，**不做 GCJ02 转换**——转了反而整体偏移约 500m（曾踩坑）。若未来接入高德/腾讯等 GCJ02 底图，需用 `ui/map/CoordinateTransform.kt`（标准 eviltransform WGS84→GCJ02，含 outOfChina 判断）转换后再上图。Canvas 自绘无底图，不做转换。
 
 ## 调试导入（仅 DEBUG）
 
@@ -109,4 +109,17 @@ GPS 采集的轨迹点是 WGS84 坐标；国内地图底图（Mapbox 中国/高�
 ## 数据层变更（Room v2）
 
 新增 `coach_messages` 表（UploadWorker 轮询到 AI 点评后先落库再 TTS，`serverId` 唯一索引去重）。当前 `fallbackToDestructiveMigration()` 允许清库升级，**正式版发布前必须改为显式 Migration**。
+
+# 1.2 更新：真全屏沉浸 + 退出管理 + 弹窗组件
+
+引入两个成熟开源库，不重复造轮子：
+
+- **ImmersionBar 3.2.2**（Maven Central）：状态栏/导航栏/刘海适配。`BaseActivity` 统一 `transparentBar()` 真全屏（内容延伸到状态栏与刘海区域，`layoutInDisplayCutoutMode=shortEdges`），图标深浅由子类覆写 `statusBarDarkFont()` 决定（地图页 false=白图标，浅色页默认 true）。
+- **XPopup 2.10.0**（JitPack）：确认弹窗统一走 `XPopup.asConfirm`（运动中退出确认、电池白名单引导），替代系统 AlertDialog。
+
+配套机制：
+
+- **fitSystemBars(top, bottom)**：BaseActivity 提供的 insets 辅助，给顶部视图叠加状态栏+刘海高度 margin、底部视图叠加虚拟键/手势条高度 padding。背景层（地图）保持全屏，交互 UI 避让。
+- **ActivityStack**：全局 Activity 栈（BaseActivity 自动 push/pop），「双击返回退出」时 `finishAll()` 一次性关闭所有页面。
+- **返回键策略（MainActivity）**：运动中按返回 → XPopup 确认（退出不中断前台 Service 记录）；非运动中 → 2 秒内双击返回退出 App。
 # RunApp-Android
