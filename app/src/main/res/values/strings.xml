@@ -37,4 +37,46 @@
     <string name="share_edit_reset">恢复默认</string>
     <string name="share_action">分享</string>
     <string name="desc_close">关闭</string>
+
+    <!-- PhotoEditor 编辑工具栏 -->
+    <string name="share_edit_undo">↩ 撤销</string>
+    <string name="share_edit_redo">↪ 重做</string>
+    <string name="share_edit_brush">✏️ 画笔</string>
+    <string name="share_edit_eraser">🧹 橡皮</string>
+    <string name="share_edit_text">📝 文字</string>
+    <string name="share_edit_emoji">😀 表情</string>
+    <string name="share_edit_sticker">🏃 轨迹</string>
+    <string name="share_edit_filter">🎨 滤镜</string>
+    <string name="share_edit_add_text_hint">输入文字</string>
+    <string name="share_edit_brush_color">画笔颜色</string>
+    <string name="share_edit_brush_size">画笔粗细</string>
+    <string name="share_edit_filter_none">无滤镜</string>
+
+    <!-- 登录/注册 -->
+    <string name="auth_login_entry">登录</string>
+    <string name="auth_login">登 录</string>
+    <string name="auth_register">注 册</string>
+    <string name="auth_login_subtitle">记录每一次运动</string>
+    <string name="auth_register_subtitle">创建你的运动账号</string>
+    <string name="auth_username_hint">用户名</string>
+    <string name="auth_display_name_hint">昵称</string>
+    <string name="auth_password_hint">密码</string>
+    <string name="auth_confirm_password_hint">确认密码</string>
+    <string name="auth_no_account">还没有账号？</string>
+    <string name="auth_go_register">立即注册</string>
+    <string name="auth_has_account">已有账号？</string>
+    <string name="auth_go_login">去登录</string>
+    <string name="auth_skip">暂不登录，先逛逛</string>
+    <string name="auth_login_success">欢迎回来，%1$s</string>
+    <string name="auth_register_success">注册成功，欢迎你，%1$s</string>
+    <string name="auth_logout">退出登录</string>
+    <string name="auth_error_username_empty">请输入用户名</string>
+    <string name="auth_error_username_length">用户名需 3-20 个字符</string>
+    <string name="auth_error_username_format">用户名仅支持字母、数字、下划线</string>
+    <string name="auth_error_display_name_empty">请输入昵称</string>
+    <string name="auth_error_password_empty">请输入密码</string>
+    <string name="auth_error_password_length">密码需 6-20 个字符</string>
+    <string name="auth_error_password_mismatch">两次输入的密码不一致</string>
+    <string name="auth_error_login_failed">登录失败，请重试</string>
+    <string name="auth_error_register_failed">注册失败，请重试</string>
 </resources>

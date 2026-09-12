@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 登录页：深色运动风，品牌 Logo + 用户名/密码输入 + 登录按钮 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_auth_gradient"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/loginContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingTop="80dp"
+        android:paddingBottom="40dp">
+
+        <!-- 品牌 Logo 区 -->
+        <View
+            android:layout_width="64dp"
+            android:layout_height="6dp"
+            android:background="#F97316" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/barlow_condensed_bold"
+            android:text="RUNPULSE"
+            android:textColor="#F8FAFC"
+            android:textSize="42sp"
+            android:letterSpacing="0.15" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/auth_login_subtitle"
+            android:textColor="#94A3B8"
+            android:textSize="15sp" />
+
+        <!-- 用户名输入 -->
+        <EditText
+            android:id="@+id/etUsername"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="48dp"
+            android:background="@drawable/bg_auth_input"
+            android:hint="@string/auth_username_hint"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingHorizontal="16dp"
+            android:textColor="#F8FAFC"
+            android:textColorHint="#94A3B8"
+            android:textSize="16sp" />
+
+        <!-- 密码输入 -->
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_auth_input"
+            android:hint="@string/auth_password_hint"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:paddingHorizontal="16dp"
+            android:textColor="#F8FAFC"
+            android:textColorHint="#94A3B8"
+            android:textSize="16sp" />
+
+        <!-- 错误提示 -->
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#EF4444"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <!-- 登录按钮 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="24dp">
+
+            <TextView
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_auth_button"
+                android:gravity="center"
+                android:text="@string/auth_login"
+                android:textColor="#FFFFFF"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/progressLogin"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="#FFFFFF"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- 注册链接 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auth_no_account"
+                android:textColor="#94A3B8"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/btnGoRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/auth_go_register"
+                android:textColor="#F97316"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 游客入口 -->
+        <TextView
+            android:id="@+id/btnSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/auth_skip"
+            android:textColor="#94A3B8"
+            android:textSize="14sp" />
+    </LinearLayout>
+</ScrollView>

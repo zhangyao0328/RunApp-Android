@@ -1,6 +1,7 @@
 package com.runpulse.app.api
 
 import com.runpulse.app.BuildConfig
+import com.runpulse.app.auth.AuthInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -17,13 +18,6 @@ object ApiClient {
     val api: RunPulseApi by lazy { buildRetrofit().create(RunPulseApi::class.java) }
 
     private fun buildRetrofit(): Retrofit {
-        val authInterceptor = okhttp3.Interceptor { chain ->
-            val request = chain.request().newBuilder()
-                .header("X-API-Key", BuildConfig.API_KEY)
-                .build()
-            chain.proceed(request)
-        }
-
         val logging = HttpLoggingInterceptor().apply {
             // 注意：Release 版本发布前请降级为 NONE，避免泄露轨迹数据
             level = if (BuildConfig.DEBUG) {
@@ -37,7 +31,7 @@ object ApiClient {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(authInterceptor)
+            .addInterceptor(AuthInterceptor())
             .addInterceptor(logging)
             .build()
 

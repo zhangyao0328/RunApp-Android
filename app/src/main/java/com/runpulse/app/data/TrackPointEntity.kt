@@ -27,6 +27,8 @@ data class TrackPointEntity(
     val accuracy: Float,
     /** 心率可空，1.0 暂不接入 BLE 心率带，固定为 null */
     val heartRate: Int? = null,
+    /** 步频（SPM），仅跑步时通过加速度计检测，其他运动类型为 null */
+    val cadence: Int? = null,
     /** 定位点系统时间（epoch 毫秒） */
     val timestamp: Long,
     val uploaded: Boolean = false

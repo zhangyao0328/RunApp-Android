@@ -18,6 +18,8 @@ coroutines = "1.8.1"
 immersionbar = "3.2.2"
 # XPopup 弹窗组件（JitPack）
 xpopup = "2.10.0"
+# PhotoEditor 图片编辑器（Maven Central）
+photoeditor = "3.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +52,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 immersionbar = { group = "com.geyifeng.immersionbar", name = "immersionbar", version.ref = "immersionbar" }
 # XPopup 弹窗
 xpopup = { group = "com.github.li-xiaojun", name = "XPopup", version.ref = "xpopup" }
+# PhotoEditor 图片编辑器（画笔/文字/贴纸/滤镜/撤销重做）
+photoeditor = { group = "com.burhanrashid52", name = "photoeditor", version.ref = "photoeditor" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

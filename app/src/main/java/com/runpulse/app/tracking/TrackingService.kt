@@ -37,6 +37,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.os.Process
+import android.os.Handler
 import java.util.UUID
 
 /**
@@ -70,11 +71,23 @@ class TrackingService : Service() {
 
         /** 每收到多少个点记一次进度事件 */
         private const val POINTS_PROGRESS_STEP = 100
+        
+        /** 通知栏更新间隔（毫秒） */
+        private const val NOTIFICATION_UPDATE_INTERVAL_MS = 3000L
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val dao by lazy { AppDatabase.get(this).trackingDao() }
     private val fusedClient by lazy { LocationServices.getFusedLocationProviderClient(this) }
+    
+    /** 步频检测器（仅跑步时启用） */
+    private var cadenceDetector: CadenceDetector? = null
+    private var currentSportType: SportType = SportType.RUN
+    
+    /** 通知栏更新 */
+    private val notificationHandler = Handler(Looper.getMainLooper())
+    private var notificationUpdateRunnable: Runnable? = null
+    private var lastNotificationUpdateTime = 0L
 
     private var currentSessionId: String? = null
 
@@ -121,6 +134,7 @@ class TrackingService : Service() {
             return
         }
 
+        currentSportType = sportType
         val session = SessionEntity(
             sessionId = UUID.randomUUID().toString(),
             sportType = sportType.value,
@@ -129,6 +143,14 @@ class TrackingService : Service() {
         currentSessionId = session.sessionId
         pointsSinceTrigger = 0
         lastTriggerAt = System.currentTimeMillis()
+
+        // 仅跑步时启动步频检测
+        if (sportType == SportType.RUN) {
+            cadenceDetector = CadenceDetector(this).apply {
+                startListening()
+            }
+            Log.d(TAG, "跑步模式：步频检测已启动")
+        }
 
         serviceScope.launch {
             dao.insertSession(session)
@@ -144,6 +166,7 @@ class TrackingService : Service() {
 
         startForegroundWithNotification()
         requestLocationUpdates()
+        startNotificationUpdates()
         DiagLogger.log(this, session.sessionId, "session_start", "sport=${session.sportType} pid=${Process.myPid()}")
         Log.d(TAG, "会话开始：${session.sessionId} (${session.sportType})")
     }
@@ -151,6 +174,14 @@ class TrackingService : Service() {
     private fun stopSession() {
         val endTime = System.currentTimeMillis()
         val sessionId = currentSessionId
+        
+        // 停止步频检测
+        cadenceDetector?.stopListening()
+        cadenceDetector = null
+        
+        // 停止通知栏更新
+        stopNotificationUpdates()
+        
         if (sessionId == null) {
             // 兜底：进程被系统杀掉/覆盖安装后，内存中的会话 id 丢失，
             // 但 Room 里会话还是 isActive=1 —— 此时从本地库恢复再结束，
@@ -247,6 +278,12 @@ class TrackingService : Service() {
                         "count=$pointCount acc=${location.accuracy} speed=${location.speed}"
                     )
                 }
+                
+                // 获取当前步频（仅跑步时）
+                val currentCadence = if (currentSportType == SportType.RUN) {
+                    cadenceDetector?.currentCadence?.value
+                } else null
+                
                 serviceScope.launch {
                     dao.insertPoint(
                         TrackPointEntity(
@@ -257,6 +294,7 @@ class TrackingService : Service() {
                             speed = location.speed,
                             accuracy = location.accuracy,
                             heartRate = null, // TODO(BLE 心率): 接入心率带后填充
+                            cadence = currentCadence,
                             timestamp = location.time
                         )
                     )
@@ -303,12 +341,97 @@ class TrackingService : Service() {
         return NotificationCompat.Builder(this, RunPulseApp.CHANNEL_TRACKING)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle(getString(R.string.tracking_notification_title))
-            // TODO(UI): 距离/配速占位，后续由 Room Flow 统计后定时刷新通知文本
             .setContentText("距离 -- km · 配速 --'--\"")
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .build()
+    }
+    
+    /** 构建实时更新的通知内容 */
+    private suspend fun buildNotificationText(): String {
+        val sessionId = currentSessionId ?: return "距离 -- km · 配速 --'--\""
+        
+        // 从数据库查询当前会话的轨迹点
+        val points = dao.getSessionPoints(sessionId)
+        if (points.isEmpty()) return "距离 -- km · 配速 --'--\""
+        
+        // 计算距离和配速
+        val distanceKm = com.runpulse.app.stats.TrackStats.distanceKm(points)
+        val pace = com.runpulse.app.stats.TrackStats.avgPaceString(points)
+        
+        // 构建通知文本
+        val baseText = String.format("距离 %.2f km · 配速 %s", distanceKm, pace)
+        
+        // 跑步时添加步频信息
+        return if (currentSportType == SportType.RUN) {
+            val cadence = cadenceDetector?.currentCadence?.value ?: 0
+            if (cadence > 0) {
+                "$baseText · 步频 $cadence"
+            } else {
+                baseText
+            }
+        } else {
+            baseText
+        }
+    }
+    
+    /** 启动通知栏定时更新 */
+    private fun startNotificationUpdates() {
+        stopNotificationUpdates() // 先停止旧的更新任务
+        
+        notificationUpdateRunnable = object : Runnable {
+            override fun run() {
+                updateNotification()
+                notificationHandler.postDelayed(this, NOTIFICATION_UPDATE_INTERVAL_MS)
+            }
+        }
+        notificationHandler.post(notificationUpdateRunnable!!)
+        Log.d(TAG, "通知栏定时更新已启动")
+    }
+    
+    /** 停止通知栏定时更新 */
+    private fun stopNotificationUpdates() {
+        notificationUpdateRunnable?.let {
+            notificationHandler.removeCallbacks(it)
+            notificationUpdateRunnable = null
+            Log.d(TAG, "通知栏定时更新已停止")
+        }
+    }
+    
+    /** 更新通知栏内容 */
+    private fun updateNotification() {
+        val now = System.currentTimeMillis()
+        // 限制更新频率，避免过于频繁
+        if (now - lastNotificationUpdateTime < NOTIFICATION_UPDATE_INTERVAL_MS - 500) {
+            return
+        }
+        lastNotificationUpdateTime = now
+        
+        serviceScope.launch {
+            try {
+                val notificationText = buildNotificationText()
+                val notification = NotificationCompat.Builder(this@TrackingService, RunPulseApp.CHANNEL_TRACKING)
+                    .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                    .setContentTitle(getString(R.string.tracking_notification_title))
+                    .setContentText(notificationText)
+                    .setOngoing(true)
+                    .setContentIntent(
+                        PendingIntent.getActivity(
+                            this@TrackingService, 0,
+                            Intent(this@TrackingService, MainActivity::class.java),
+                            PendingIntent.FLAG_IMMUTABLE
+                        )
+                    )
+                    .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+                    .build()
+                
+                val notificationManager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, notification)
+            } catch (e: Exception) {
+                Log.e(TAG, "更新通知栏失败", e)
+            }
+        }
     }
 
     private fun startForegroundWithNotification() {
@@ -333,6 +456,8 @@ class TrackingService : Service() {
     override fun onDestroy() {
         DiagLogger.log(this, currentSessionId, "service_destroy", "pid=${Process.myPid()}")
         fusedClient.removeLocationUpdates(locationCallback)
+        cadenceDetector?.stopListening()
+        stopNotificationUpdates()
         serviceScope.cancel()
         super.onDestroy()
     }

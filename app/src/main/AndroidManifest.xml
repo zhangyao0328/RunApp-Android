@@ -15,6 +15,9 @@
 
     <!-- Android 13+ 通知运行时权限 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- 加速度计（用于步频检测） -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <!--
       说明：刻意【不】申请 ACCESS_BACKGROUND_LOCATION。
@@ -49,6 +52,18 @@
             android:name=".ui.detail.SessionDetailActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
+        <!-- 登录/注册页 -->
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- 轨迹采集前台 Service，类型为 location -->
         <service

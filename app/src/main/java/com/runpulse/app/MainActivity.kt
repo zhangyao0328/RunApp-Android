@@ -26,6 +26,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.lxj.xpopup.XPopup
+import com.runpulse.app.auth.AuthManager
+import com.runpulse.app.auth.LoginActivity
 import com.runpulse.app.data.AppDatabase
 import com.runpulse.app.databinding.ActivityMainBinding
 import com.runpulse.app.debug.GpxImporter
@@ -144,6 +146,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.btnBattery.setOnClickListener { showBatteryOptimizationGuide() }
         // 定位悬浮按钮：平滑回中到当前位置（运动中也可随时点，手动拖过地图后一键回跟）
         binding.btnLocate.setOnClickListener { showMyLocationOnPreview(forceCenter = true) }
+        // 用户入口：未登录跳登录页，已登录弹用户菜单
+        binding.btnUser.setOnClickListener { onUserEntryClick() }
+        updateUserEntry()
     }
 
     // ---------- 当前位置 ----------
@@ -252,6 +257,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                         trackPreview.setTrack(points)
                         val km = TrackStats.distanceKm(points)
                         binding.tvDistance.text = String.format(Locale.CHINA, "距离：%.2f km", km)
+                        
+                        // 更新步频显示（仅跑步时显示）
+                        updateCadenceDisplay(points)
                     }
                 }
             }
@@ -280,6 +288,58 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         val m = (elapsedSec % 3600) / 60
         val s = elapsedSec % 60
         binding.tvDuration.text = String.format(Locale.CHINA, "时长：%02d:%02d:%02d", h, m, s)
+    }
+    
+    /** 更新步频显示（仅跑步时显示） */
+    private fun updateCadenceDisplay(points: List<com.runpulse.app.data.TrackPointEntity>) {
+        val session = viewModel.activeSession.value ?: return
+        
+        if (session.sportType == SportType.RUN.value) {
+            // 跑步模式：显示步频
+            binding.tvCadence.isVisible = true
+            
+            // 获取最新的步频数据
+            val latestCadence = points.lastOrNull()?.cadence
+            if (latestCadence != null && latestCadence > 0) {
+                binding.tvCadence.text = String.format(Locale.CHINA, "步频：%d SPM", latestCadence)
+            } else {
+                binding.tvCadence.text = "步频：-- SPM"
+            }
+        } else {
+            // 非跑步模式：隐藏步频
+            binding.tvCadence.isVisible = false
+        }
+    }
+
+    // ---------- 用户入口 ----------
+
+    /** 更新用户入口按钮文字：未登录显示"登录"，已登录显示昵称 */
+    private fun updateUserEntry() {
+        if (AuthManager.isLoggedIn()) {
+            binding.btnUser.text = AuthManager.getDisplayName() ?: AuthManager.getUsername() ?: "已登录"
+        } else {
+            binding.btnUser.text = getString(R.string.auth_login_entry)
+        }
+    }
+
+    private fun onUserEntryClick() {
+        if (AuthManager.isLoggedIn()) {
+            showUserMenu()
+        } else {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+    }
+
+    private fun showUserMenu() {
+        val displayName = AuthManager.getDisplayName() ?: AuthManager.getUsername() ?: ""
+        XPopup.Builder(this).asBottomList(
+            displayName,
+            arrayOf(getString(R.string.auth_logout))
+        ) { _, _ ->
+            AuthManager.logout()
+            updateUserEntry()
+            Toast.makeText(this, "已退出登录", Toast.LENGTH_SHORT).show()
+        }.show()
     }
 
     // ---------- 调试导入 ----------
@@ -335,6 +395,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun onStart() {
         super.onStart()
         trackPreview.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUserEntry()
     }
 
     override fun onStop() {

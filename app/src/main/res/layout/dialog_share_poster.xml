@@ -49,9 +49,9 @@
             android:background="#FF0B1220"
             android:scaleType="fitXY" />
 
-        <!-- 照片模板交互编辑器（与 ivPreview 同尺寸逻辑，PHOTO 页签时显示） -->
-        <com.runpulse.app.ui.share.PhotoPosterEditorView
-            android:id="@+id/photoEditor"
+        <!-- PhotoEditor 编辑器（与 ivPreview 同尺寸逻辑，PHOTO 页签时显示） -->
+        <ja.burhanrashid52.photoeditor.PhotoEditorView
+            android:id="@+id/photoEditorView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#FF0B1220"
@@ -100,6 +100,117 @@
             android:text="@string/share_template_photo"
             android:textSize="15sp" />
     </LinearLayout>
+
+    <!-- 编辑工具栏（PHOTO 模板时可见） -->
+    <HorizontalScrollView
+        android:id="@+id/editToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnUndo"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_undo"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnRedo"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_redo"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnBrush"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_brush"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnEraser"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_eraser"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnAddText"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_text"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnAddEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_emoji"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnAddSticker"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_sticker"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_poster_tab_normal"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="@string/share_edit_filter"
+                android:textColor="#F8FAFC"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- 操作行 -->
     <LinearLayout

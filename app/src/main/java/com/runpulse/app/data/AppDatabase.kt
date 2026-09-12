@@ -4,17 +4,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * Room 数据库单例。
  *
- * v2 变更：新增 coach_messages 表。
- * 注意：当前使用 fallbackToDestructiveMigration()——1.0 阶段允许升级时清库重建，
- * 正式发布前必须为每次 schema 变更编写显式 Migration，避免用户轨迹数据丢失。
+ * 版本历史：
+ * - v1: 初始版本（track_points, sessions）
+ * - v2: 新增 coach_messages 表
+ * - v3: track_points 新增 cadence 字段（步频）
+ *
+ * 注意：已移除 fallbackToDestructiveMigration()，所有版本升级必须提供显式 Migration。
  */
 @Database(
     entities = [TrackPointEntity::class, SessionEntity::class, CoachMessageEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +30,17 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var instance: AppDatabase? = null
 
+        /**
+         * v2 -> v3: 为 track_points 表添加 cadence 字段
+         */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE track_points ADD COLUMN cadence INTEGER DEFAULT NULL"
+                )
+            }
+        }
+
         fun get(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -32,8 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "runpulse.db"
                 )
-                    // TODO(发布前): 删除此行并补齐 Migration，1.0 阶段允许清库
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_2_3)
                     .build().also { instance = it }
             }
         }

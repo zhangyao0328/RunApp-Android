@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Process
+import com.runpulse.app.auth.AuthManager
 import com.runpulse.app.diag.DiagLogger
 import com.runpulse.app.upload.UploadScheduler
 
@@ -21,6 +22,8 @@ class RunPulseApp : Application() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        // 初始化认证管理器（SharedPreferences 读取登录态）
+        AuthManager.init(this)
         // 进程启动打点：运动中若出现非预期的 process_start，说明进程被杀后重启过
         DiagLogger.init(this)
         DiagLogger.log(this, null, "app_process_start", "pid=${Process.myPid()}")

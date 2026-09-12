@@ -90,4 +90,7 @@ dependencies {
     // 沉浸式系统栏 + 弹窗组件
     implementation(libs.immersionbar)
     implementation(libs.xpopup)
+
+    // PhotoEditor 海报图片编辑（画笔/文字/贴纸/滤镜/撤销重做）
+    implementation(libs.photoeditor)
 }

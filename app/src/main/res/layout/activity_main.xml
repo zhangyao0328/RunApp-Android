@@ -49,7 +49,33 @@
             android:text="时长：00:00:00"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
+        
+        <TextView
+            android:id="@+id/tvCadence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="步频：-- SPM"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:visibility="gone" />
     </LinearLayout>
+
+    <!-- 顶部右侧：用户入口按钮（未登录显示"登录"，已登录显示昵称） -->
+    <TextView
+        android:id="@+id/btnUser"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_overlay_card"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
+        android:text="@string/auth_login_entry"
+        android:textColor="#F97316"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <!-- 右侧中部：定位悬浮按钮（避开顶部状态卡与底部按钮区，参考 Strava/Keep 位置） -->
     <ImageButton
