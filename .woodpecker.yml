@@ -6,6 +6,14 @@ when:
     branch: main
   - event: manual
 
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+    settings:
+      depth: 1
+      # 使用国内镜像加速
+      mirror: https://ghproxy.com/https://github.com/zhangyao0328/RunApp-Android.git
+
 steps:
   # 构建 Debug APK
   build-debug:
@@ -45,5 +53,5 @@ steps:
 # 构建缓存
 cache:
   mount:
-    - ~/.gradle/caches
-    - ~/.gradle/wrapper
+    - /root/.gradle/caches
+    - /root/.gradle/wrapper
