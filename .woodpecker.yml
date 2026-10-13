@@ -25,6 +25,8 @@ steps:
     image: alpine:latest
     secrets: [SSH_PRIVATE_KEY]
     commands:
+      # 使用国内镜像源加速
+      - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache openssh-client rsync
       - mkdir -p ~/.ssh
       - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
