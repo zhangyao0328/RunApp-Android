@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RunPulse 设计令牌（深色为主，浅色兜底见 values-night）
+     来源：ui-ux-pro-max skill 设计系统生成器（跑步健身类 / Vibrant & Block-based 深色活力风） -->
+<resources>
+    <!-- 品牌色 -->
+    <color name="brand_primary">#F97316</color>      <!-- 能量橙：主按钮 / 选中态 / 品牌 -->
+    <color name="brand_secondary">#FB923C</color>    <!-- 浅橙：次级强调 / 链接 -->
+    <color name="brand_accent">#22C55E</color>       <!-- 成功绿：正向 CTA / 达成态 -->
+    <color name="on_brand_primary">#0B1220</color>   <!-- 橙底上的深色文字 -->
+
+    <!-- 背景层级 -->
+    <color name="bg_base">#0B1220</color>            <!-- 页面底色 -->
+    <color name="bg_surface">#1F2937</color>         <!-- 卡片 / 内容块 -->
+    <color name="bg_elevated">#313742</color>        <!-- 弹窗内卡 / 更高层级 -->
+    <color name="bg_sheet">#141824</color>           <!-- 底部弹窗 -->
+    <color name="bg_overlay">#B3000000</color>       <!-- 地图悬浮卡片 -->
+    <color name="bg_input">#CC1F2937</color>         <!-- 输入框 -->
+    <color name="bg_social_button">#1AFFFFFF</color> <!-- 第三方登录圆钮 -->
+    <color name="bg_sport_icon">#33F97316</color>    <!-- 运动类型图标底（橙 20%） -->
+
+    <!-- 文字 -->
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#DDE4EC</color>
+    <color name="text_muted">#94A3B8</color>
+    <color name="text_faint">#64748B</color>
+
+    <!-- 边框与分割线 -->
+    <color name="border_subtle">#33FFFFFF</color>
+    <color name="divider">#334155</color>
+
+    <!-- 遮罩 -->
+    <color name="scrim_bottom">#CC000000</color>     <!-- 地图底部渐变压暗 -->
+
+    <!-- 状态 -->
+    <color name="state_error">#EF4444</color>
+    <color name="state_success">#22C55E</color>
+
+    <!-- 地图组件 -->
+    <color name="map_button_bg">#1F2937</color>      <!-- 地图悬浮圆钮（深色态） -->
+    <color name="map_button_bg_pressed">#313742</color>
+    <color name="icon_on_map_button">#F8FAFC</color> <!-- 地图圆钮上图标 -->
+    <color name="track_fast">#4CAF50</color>         <!-- 轨迹速度渐变：快 -->
+    <color name="track_slow">#F44336</color>         <!-- 轨迹速度渐变：慢 -->
+    <color name="map_location">#1E88E5</color>       <!-- 当前位置点 -->
+
+    <!-- 第三方品牌（不随主题变化） -->
+    <color name="wechat_brand">#07C160</color>
+</resources>

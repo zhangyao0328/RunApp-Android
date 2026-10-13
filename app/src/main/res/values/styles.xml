@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RunPulse 公共样式：按钮体系 + 文字层级（配合 colors.xml / dimens.xml 令牌使用） -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 按钮体系 -->
+    <style name="RunPulse.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/on_brand_primary</item>
+        <item name="android:textSize">@dimen/text_body_l</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/brand_primary</item>
+        <item name="cornerRadius">@dimen/radius_m</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+    </style>
+
+    <style name="RunPulse.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_body_l</item>
+        <item name="strokeColor">@color/border_subtle</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">@dimen/radius_m</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+    </style>
+
+    <style name="RunPulse.Button.Danger" parent="Widget.Material3.Button">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">@dimen/text_body_l</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/state_error</item>
+        <item name="cornerRadius">@dimen/radius_m</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+    </style>
+
+    <style name="RunPulse.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">@dimen/text_body</item>
+    </style>
+
+    <!-- 文字层级（点分样式隐式继承 RunPulse 基样式） -->
+    <style name="RunPulse" />
+    <style name="RunPulse.Text" />
+
+    <style name="RunPulse.Text.Display">
+        <item name="android:fontFamily">@font/barlow_condensed_bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_display_l</item>
+    </style>
+
+    <style name="RunPulse.Text.Headline">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_headline</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RunPulse.Text.Title">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RunPulse.Text.Body">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_body</item>
+    </style>
+
+    <style name="RunPulse.Text.Caption">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+    </style>
+
+    <style name="RunPulse.Text.Link">
+        <item name="android:textColor">@color/brand_secondary</item>
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>
