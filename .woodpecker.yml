@@ -23,7 +23,9 @@ steps:
   # 上传 APK 到服务器
   upload:
     image: alpine:latest
-    secrets: [SSH_PRIVATE_KEY]
+    environment:
+      SSH_PRIVATE_KEY:
+        from_secret: SSH_PRIVATE_KEY
     commands:
       # 使用国内镜像源加速
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
