@@ -1,0 +1,49 @@
+# Woodpecker CI 配置 - RunPulse Android 构建
+# 触发条件：推送到 main 分支或手动触发
+
+when:
+  - event: push
+    branch: main
+  - event: manual
+
+steps:
+  # 构建 Debug APK
+  build-debug:
+    image: mingc/android-build-box:latest
+    commands:
+      - chmod +x gradlew
+      - ./gradlew assembleDebug --no-daemon
+    when:
+      - event: push
+      - event: manual
+
+  # 构建 Release APK（仅手动触发）
+  build-release:
+    image: mingc/android-build-box:latest
+    commands:
+      - chmod +x gradlew
+      - ./gradlew assembleRelease --no-daemon
+    when:
+      - event: manual
+
+  # 上传 APK 到服务器（仅 Release 构建）
+  upload-apk:
+    image: alpine:latest
+    commands:
+      - apk add --no-cache openssh-client rsync
+      - mkdir -p ~/.ssh
+      - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
+      - rsync -avz app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
+    secrets:
+      - SSH_PRIVATE_KEY
+    when:
+      - event: manual
+      - status: success
+
+# 构建缓存
+cache:
+  mount:
+    - ~/.gradle/caches
+    - ~/.gradle/wrapper
