@@ -27,9 +27,10 @@ steps:
     commands:
       - apk add --no-cache openssh-client rsync
       - mkdir -p ~/.ssh
-      - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+      - printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
-      - rsync -avz app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
+      - ls -la app/build/outputs/apk/release/
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
     when:
       - status: success
