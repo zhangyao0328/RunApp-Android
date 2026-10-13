@@ -39,6 +39,7 @@ import com.runpulse.app.ui.base.BaseActivity
 import com.runpulse.app.ui.history.HistoryActivity
 import com.runpulse.app.ui.map.TrackMapFactory
 import com.runpulse.app.ui.map.TrackMapView
+import com.runpulse.app.update.AppUpdateManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,12 +59,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     // 时长秒表：仅在有活跃会话时每秒刷新一次
     private val tickerHandler = Handler(Looper.getMainLooper())
     private var sessionStartTime: Long = 0L
+    /** 本次暂停段开始的本地时间（观察 Room isPaused 翻转时记录），用于扣除进行中的暂停时长 */
+    private var currentPausedStartLocal: Long = 0L
     private val ticker = object : Runnable {
         override fun run() {
             updateDurationText()
             tickerHandler.postDelayed(this, 1000L)
         }
     }
+    private var selectedSport: SportType = SportType.RUN
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -87,6 +91,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         requestRuntimePermissions()
         showMyLocationOnPreview()
         observeState()
+        checkAppUpdate()
+    }
+
+    /** 检查应用更新 */
+    private fun checkAppUpdate() {
+        lifecycleScope.launch {
+            AppUpdateManager.checkUpdate(this@MainActivity)
+        }
     }
 
     /** 地图背景页：状态栏/导航栏用白色图标 */
@@ -106,7 +118,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                     ActivityStack.finishAll()
                 } else {
                     lastBackPressTime = System.currentTimeMillis()
-                    Toast.makeText(this@MainActivity, "再按一次退出", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, R.string.exit_back_again, Toast.LENGTH_SHORT).show()
                 }
             }
         })
@@ -133,23 +145,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
     private fun setupButtons() {
-        binding.btnRun.setOnClickListener { startTracking(SportType.RUN) }
-        binding.btnTrail.setOnClickListener { startTracking(SportType.TRAIL) }
-        binding.btnBike.setOnClickListener { startTracking(SportType.BIKE) }
+        binding.btnRun.setOnClickListener { selectSport(SportType.RUN) }
+        binding.btnTrail.setOnClickListener { selectSport(SportType.TRAIL) }
+        binding.btnBike.setOnClickListener { selectSport(SportType.BIKE) }
+        binding.btnStart.setOnClickListener { startTracking(selectedSport) }
         binding.btnStop.setOnClickListener { stopTracking() }
+        binding.btnPause.setOnClickListener { togglePause() }
         binding.btnHistory.setOnClickListener {
-            startActivity(Intent(this, HistoryActivity::class.java))
+            startActivityWithAnim(Intent(this, HistoryActivity::class.java))
         }
         // 调试入口：仅 DEBUG 构建可见，导入 assets 中的 GPX 测试数据
         binding.btnImport.isVisible = BuildConfig.DEBUG
         binding.btnImport.setOnClickListener { importTestData() }
+        // 调试入口：仅 DEBUG 构建可见，立即触发一次全量对账同步（UploadWorker）
+        binding.btnSync.isVisible = BuildConfig.DEBUG
+        binding.btnSync.setOnClickListener {
+            com.runpulse.app.upload.UploadScheduler.triggerNow(this)
+            Toast.makeText(this, R.string.sync_triggered, Toast.LENGTH_SHORT).show()
+        }
         binding.btnBattery.setOnClickListener { showBatteryOptimizationGuide() }
         // 定位悬浮按钮：平滑回中到当前位置（运动中也可随时点，手动拖过地图后一键回跟）
         binding.btnLocate.setOnClickListener { showMyLocationOnPreview(forceCenter = true) }
         // 用户入口：未登录跳登录页，已登录弹用户菜单
         binding.btnUser.setOnClickListener { onUserEntryClick() }
         updateUserEntry()
+        // 初始选中跑步，chip 选中态由 selector 渲染
+        selectSport(SportType.RUN)
     }
+
+    private fun selectSport(type: SportType) {
+        selectedSport = type
+        binding.btnStart.text = getString(
+            R.string.start_tracking, sportName(type)
+        )
+        listOf(
+            binding.btnRun to (type == SportType.RUN),
+            binding.btnTrail to (type == SportType.TRAIL),
+            binding.btnBike to (type == SportType.BIKE)
+        ).forEach { (view, selected) ->
+            // 选中态由 selector_chip_sport / selector_sport_text 按 isSelected 渲染
+            view.isSelected = selected
+        }
+    }
+
+    private fun sportName(type: SportType): String = getString(
+        when (type) {
+            SportType.RUN -> R.string.sport_run
+            SportType.TRAIL -> R.string.sport_trail
+            SportType.BIKE -> R.string.sport_bike
+        }
+    )
 
     // ---------- 当前位置 ----------
 
@@ -231,6 +276,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         startService(intent)
     }
 
+    private fun togglePause() {
+        val paused = viewModel.activeSession.value?.isPaused == true
+        val intent = Intent(this, TrackingService::class.java).apply {
+            action = if (paused) TrackingService.ACTION_RESUME else TrackingService.ACTION_PAUSE
+        }
+        startService(intent)
+    }
+
     // ---------- 状态观察 ----------
 
     private fun observeState() {
@@ -240,14 +293,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                     viewModel.activeSession.collect { session ->
                         if (session != null) {
                             sessionStartTime = session.startTime
-                            binding.tvStatus.text = "运动中（${session.sportType}）"
+                            // 暂停状态翻转时记录本地暂停起点（Room 只存累计值，进行中的暂停段本地折算）
+                            if (session.isPaused && currentPausedStartLocal == 0L) {
+                                currentPausedStartLocal = System.currentTimeMillis()
+                            } else if (!session.isPaused) {
+                                currentPausedStartLocal = 0L
+                            }
+                            val sportName = when (session.sportType) {
+                                SportType.RUN.value -> getString(R.string.sport_run)
+                                SportType.TRAIL.value -> getString(R.string.sport_trail)
+                                SportType.BIKE.value -> getString(R.string.sport_bike)
+                                else -> getString(R.string.sport_default)
+                            }
+                            binding.tvStatus.text = if (session.isPaused) {
+                                getString(R.string.status_paused_fmt, sportName)
+                            } else {
+                                getString(R.string.status_tracking_fmt, sportName)
+                            }
+                            binding.btnPause.text = getString(
+                                if (session.isPaused) R.string.btn_resume else R.string.btn_pause
+                            )
                             setButtonsEnabled(tracking = true)
                             startTicker()
                         } else {
-                            binding.tvStatus.text = "未开始"
+                            currentPausedStartLocal = 0L
+                            binding.tvStatus.text = getString(R.string.status_idle)
                             setButtonsEnabled(tracking = false)
                             stopTicker()
-                            binding.tvDuration.text = "时长：00:00:00"
+                            binding.tvDuration.text = getString(R.string.duration_idle)
                         }
                     }
                 }
@@ -256,7 +329,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                         // 实时轨迹预览 + 距离刷新（统计口径与详情页/服务端一致）
                         trackPreview.setTrack(points)
                         val km = TrackStats.distanceKm(points)
-                        binding.tvDistance.text = String.format(Locale.CHINA, "距离：%.2f km", km)
+                        binding.tvDistance.text = getString(R.string.distance_fmt, km)
                         
                         // 更新步频显示（仅跑步时显示）
                         updateCadenceDisplay(points)
@@ -270,6 +343,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.btnRun.isEnabled = !tracking
         binding.btnTrail.isEnabled = !tracking
         binding.btnBike.isEnabled = !tracking
+        binding.btnStart.isVisible = !tracking
+        binding.btnStart.isEnabled = !tracking
+        binding.btnPause.isVisible = tracking
         binding.btnStop.isEnabled = tracking
     }
 
@@ -283,11 +359,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
     private fun updateDurationText() {
-        val elapsedSec = (System.currentTimeMillis() - sessionStartTime) / 1000
+        // 净运动时长 = 墙钟时长 - 已结算暂停(Room) - 进行中暂停段(本地)
+        val session = viewModel.activeSession.value
+        var elapsedMs = System.currentTimeMillis() - sessionStartTime
+        session?.let {
+            elapsedMs -= it.totalPausedMs
+            if (it.isPaused && currentPausedStartLocal > 0) {
+                elapsedMs -= System.currentTimeMillis() - currentPausedStartLocal
+            }
+        }
+        val elapsedSec = (elapsedMs.coerceAtLeast(0)) / 1000
         val h = elapsedSec / 3600
         val m = (elapsedSec % 3600) / 60
         val s = elapsedSec % 60
-        binding.tvDuration.text = String.format(Locale.CHINA, "时长：%02d:%02d:%02d", h, m, s)
+        binding.tvDuration.text = getString(R.string.duration_fmt, h, m, s)
     }
     
     /** 更新步频显示（仅跑步时显示） */
@@ -301,9 +386,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             // 获取最新的步频数据
             val latestCadence = points.lastOrNull()?.cadence
             if (latestCadence != null && latestCadence > 0) {
-                binding.tvCadence.text = String.format(Locale.CHINA, "步频：%d SPM", latestCadence)
+                binding.tvCadence.text = getString(R.string.cadence_fmt, latestCadence)
             } else {
-                binding.tvCadence.text = "步频：-- SPM"
+                binding.tvCadence.text = getString(R.string.cadence_idle)
             }
         } else {
             // 非跑步模式：隐藏步频
@@ -326,7 +411,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         if (AuthManager.isLoggedIn()) {
             showUserMenu()
         } else {
-            startActivity(Intent(this, LoginActivity::class.java))
+            startActivityWithAnim(Intent(this, LoginActivity::class.java))
         }
     }
 
@@ -338,7 +423,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         ) { _, _ ->
             AuthManager.logout()
             updateUserEntry()
-            Toast.makeText(this, "已退出登录", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.logout_done, Toast.LENGTH_SHORT).show()
         }.show()
     }
 

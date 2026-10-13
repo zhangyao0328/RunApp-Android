@@ -14,6 +14,8 @@ dependencyResolutionManagement {
         maven("https://api.mapbox.com/downloads/v2/releases/maven")
         // XPopup 发布在 JitPack
         maven("https://jitpack.io")
+        // 阿里云 Maven 仓库（号码认证 SDK 部分组件）
+        maven("https://maven.aliyun.com/nexus/content/repositories/releases/")
     }
 }
 rootProject.name = "RunPulse"

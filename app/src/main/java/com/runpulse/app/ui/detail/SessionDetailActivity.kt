@@ -1,12 +1,15 @@
 package com.runpulse.app.ui.detail
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -17,13 +20,16 @@ import com.runpulse.app.R
 import com.runpulse.app.data.CoachMessageEntity
 import com.runpulse.app.databinding.ActivitySessionDetailBinding
 import com.runpulse.app.databinding.ItemCoachMessageBinding
+import com.runpulse.app.export.TrackExporter
 import com.runpulse.app.stats.TrackStats
 import com.runpulse.app.tracking.SportType
 import com.runpulse.app.ui.base.BaseActivity
 import com.runpulse.app.ui.map.TrackMapFactory
 import com.runpulse.app.ui.map.TrackMapView
 import com.runpulse.app.ui.share.SharePosterDialogFragment
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,6 +56,38 @@ class SessionDetailActivity :
     ) { uri ->
         uri?.let { shareDialog?.onPhotoPicked(it) }
     }
+
+    /** 保存到手机（SAF CreateDocument，免存储权限，默认下载目录），由系统文件选择器返回目标 uri */
+    private val saveExportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        val src = pendingExportFile
+        pendingExportFile = null
+        if (uri == null || src == null) {
+            binding.btnExport.isEnabled = true
+            return@registerForActivityResult
+        }
+        lifecycleScope.launch {
+            val ok = try {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openOutputStream(uri)?.use { out ->
+                        src.inputStream().use { it.copyTo(out) }
+                    } != null
+                }
+            } catch (e: Exception) {
+                false
+            }
+            binding.btnExport.isEnabled = true
+            Toast.makeText(
+                this@SessionDetailActivity,
+                if (ok) R.string.export_track_saved else R.string.export_track_save_failed,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    /** 待写入系统选择器返回 uri 的已生成导出文件 */
+    private var pendingExportFile: java.io.File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +122,7 @@ class SessionDetailActivity :
         binding.btnZoomOut.setOnClickListener { trackMapView?.zoomOut() }
         binding.btnFitTrack.setOnClickListener { trackMapView?.fitTrack() }
         binding.btnShare.setOnClickListener { showSharePosterDialog() }
+        binding.btnExport.setOnClickListener { showExportTrackDialog(sessionId) }
 
         binding.recyclerCoach.apply {
             layoutManager = LinearLayoutManager(this@SessionDetailActivity)
@@ -106,7 +145,7 @@ class SessionDetailActivity :
                 }
                 launch {
                     viewModel.coachMessages.collect { messages ->
-                        coachAdapter.submit(messages)
+                        coachAdapter.submitList(messages)
                         binding.tvCoachEmpty.isVisible = messages.isEmpty()
                     }
                 }
@@ -117,24 +156,137 @@ class SessionDetailActivity :
     private fun bindStats(data: SessionDetailViewModel.TrackData) {
         val points = data.points
         val session = data.session
+        val sportName = when (session?.sportType) {
+            SportType.RUN.value -> getString(R.string.sport_run)
+            SportType.TRAIL.value -> getString(R.string.sport_trail)
+            SportType.BIKE.value -> getString(R.string.sport_bike)
+            else -> getString(R.string.sport_default)
+        }
+        val headerTime = session?.startTime ?: points.firstOrNull()?.timestamp ?: 0L
+        binding.tvDetailHeader.text = "$sportName · ${SimpleDateFormat("yyyy年M月d日  EEEE", Locale.CHINA).format(Date(headerTime))}"
         binding.tvDetailDistance.text =
             String.format(Locale.CHINA, "%.2f km", TrackStats.distanceKm(points))
         val startMs = session?.startTime ?: points.firstOrNull()?.timestamp ?: 0L
         val endMs = session?.endTime ?: points.lastOrNull()?.timestamp ?: startMs
-        binding.tvDetailDuration.text = TrackStats.formatDuration(startMs, endMs)
+        val totalPausedMs = session?.totalPausedMs ?: 0L
+        binding.tvDetailDuration.text = TrackStats.formatNetDuration(startMs, endMs, totalPausedMs)
 
         // 骑行显示平均速度 km/h，跑步/越野显示配速 min/km
         if (session?.sportType == SportType.BIKE.value) {
             binding.tvDetailPaceLabel.text = getString(R.string.stats_avg_speed)
             binding.tvDetailPace.text =
-                String.format(Locale.CHINA, "%.1f km/h", TrackStats.avgSpeedKmh(points))
+                String.format(Locale.CHINA, "%.1f km/h", TrackStats.avgSpeedKmh(points, totalPausedMs))
         } else {
             binding.tvDetailPaceLabel.text = getString(R.string.stats_avg_pace)
-            binding.tvDetailPace.text = TrackStats.avgPaceString(points)
+            binding.tvDetailPace.text = TrackStats.avgPaceString(points, totalPausedMs)
         }
 
         binding.tvDetailElevation.text =
-            String.format(Locale.CHINA, "+%.0f m", TrackStats.elevationGainM(points))
+            getString(R.string.elevation_fmt, TrackStats.elevationGainM(points))
+
+        // 平均步频和步幅（仅跑步时显示）
+        if (session?.sportType == SportType.RUN.value) {
+            binding.layoutCadence.isVisible = true
+            
+            // 步频
+            val avgCadence = TrackStats.avgCadence(points)
+            binding.tvDetailCadence.text = if (avgCadence > 0) {
+                getString(R.string.cadence_fmt, avgCadence)
+            } else {
+                getString(R.string.cadence_idle)
+            }
+            
+            // 步幅
+            val avgStride = TrackStats.avgStrideLengthM(points, totalPausedMs)
+            binding.tvDetailStride.text = if (avgStride > 0) {
+                getString(R.string.stride_fmt, avgStride)
+            } else {
+                getString(R.string.stride_idle)
+            }
+        } else {
+            binding.layoutCadence.isVisible = false
+        }
+    }
+
+    /** 导出轨迹：先选格式（GPX / FIT），再选方式（分享 / 保存到手机） */
+    private fun showExportTrackDialog(sessionId: String) {
+        val formats = arrayOf(
+            getString(R.string.export_format_gpx),
+            getString(R.string.export_format_fit)
+        )
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.export_track_title)
+            .setItems(formats) { _, which ->
+                val asGpx = which == 0
+                showExportDestinationDialog(sessionId, asGpx)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** 第二步：保留原有系统分享，新增直接保存到手机 */
+    private fun showExportDestinationDialog(sessionId: String, asGpx: Boolean) {
+        val dests = arrayOf(
+            getString(R.string.export_dest_share),
+            getString(R.string.export_dest_save)
+        )
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.export_dest_title)
+            .setItems(dests) { _, which ->
+                if (which == 0) exportTrack(sessionId, asGpx) else saveTrack(sessionId, asGpx)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** 生成文件（IO 线程）→ 弹系统保存对话框（默认下载目录），结果回 saveExportLauncher */
+    private fun saveTrack(sessionId: String, asGpx: Boolean) {
+        binding.btnExport.isEnabled = false
+        lifecycleScope.launch {
+            val file = try {
+                withContext(Dispatchers.IO) {
+                    if (asGpx) TrackExporter.exportGpx(this@SessionDetailActivity, sessionId)
+                    else TrackExporter.exportFit(this@SessionDetailActivity, sessionId)
+                }
+            } catch (e: Exception) {
+                binding.btnExport.isEnabled = true
+                Toast.makeText(
+                    this@SessionDetailActivity, R.string.export_track_failed, Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+            pendingExportFile = file
+            saveExportLauncher.launch(file.name)
+        }
+    }
+
+    /** 生成文件（IO 线程）→ FileProvider uri → ACTION_SEND 系统分享 */
+    private fun exportTrack(sessionId: String, asGpx: Boolean) {
+        binding.btnExport.isEnabled = false
+        lifecycleScope.launch {
+            val file = try {
+                withContext(Dispatchers.IO) {
+                    if (asGpx) TrackExporter.exportGpx(this@SessionDetailActivity, sessionId)
+                    else TrackExporter.exportFit(this@SessionDetailActivity, sessionId)
+                }
+            } catch (e: Exception) {
+                binding.btnExport.isEnabled = true
+                Toast.makeText(
+                    this@SessionDetailActivity, R.string.export_track_failed, Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+            val uri = FileProvider.getUriForFile(
+                this@SessionDetailActivity, "$packageName.fileprovider", file
+            )
+            binding.btnExport.isEnabled = true
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = if (asGpx) "application/gpx+xml" else "application/octet-stream"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.export_track_title)))
+        }
     }
 
     /** 打开分享海报弹窗：经典/地图/照片三模板实时预览切换 */
@@ -171,17 +323,21 @@ class SessionDetailActivity :
         trackMapView?.onLowMemory()
     }
 
-    /** 教练点评列表 Adapter（数据量小，简单 notify 实现即可） */
+    /** 教练点评列表 Adapter（ListAdapter + DiffUtil） */
     private class CoachMessageAdapter :
-        RecyclerView.Adapter<CoachMessageAdapter.MessageViewHolder>() {
+        androidx.recyclerview.widget.ListAdapter<
+            CoachMessageEntity, CoachMessageAdapter.MessageViewHolder>(DIFF) {
 
-        private val items = mutableListOf<CoachMessageEntity>()
         private val timeFormat = SimpleDateFormat("HH:mm", Locale.CHINA)
 
-        fun submit(messages: List<CoachMessageEntity>) {
-            items.clear()
-            items.addAll(messages)
-            notifyDataSetChanged()
+        companion object {
+            private val DIFF = object : androidx.recyclerview.widget.DiffUtil.ItemCallback<CoachMessageEntity>() {
+                override fun areItemsTheSame(old: CoachMessageEntity, new: CoachMessageEntity) =
+                    old.timestamp == new.timestamp && old.text == new.text
+
+                override fun areContentsTheSame(old: CoachMessageEntity, new: CoachMessageEntity) =
+                    old == new
+            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
@@ -192,12 +348,10 @@ class SessionDetailActivity :
         }
 
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-            val msg = items[position]
+            val msg = getItem(position)
             holder.binding.tvMsgTime.text = timeFormat.format(Date(msg.timestamp))
             holder.binding.tvMsgText.text = msg.text
         }
-
-        override fun getItemCount(): Int = items.size
 
         class MessageViewHolder(
             val binding: ItemCoachMessageBinding

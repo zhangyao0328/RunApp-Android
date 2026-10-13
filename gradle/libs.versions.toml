@@ -20,6 +20,10 @@ immersionbar = "3.2.2"
 xpopup = "2.10.0"
 # PhotoEditor 图片编辑器（Maven Central）
 photoeditor = "3.1.0"
+# 微信开放平台 SDK（Maven Central）
+wechatSdk = "6.8.0"
+# AppUpdater 应用内更新（JitPack）
+appupdater = "2.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +58,11 @@ immersionbar = { group = "com.geyifeng.immersionbar", name = "immersionbar", ver
 xpopup = { group = "com.github.li-xiaojun", name = "XPopup", version.ref = "xpopup" }
 # PhotoEditor 图片编辑器（画笔/文字/贴纸/滤镜/撤销重做）
 photoeditor = { group = "com.burhanrashid52", name = "photoeditor", version.ref = "photoeditor" }
+# 微信开放平台 SDK（登录/分享/支付）
+wechat-sdk = { group = "com.tencent.mm.opensdk", name = "wechat-sdk-android", version.ref = "wechatSdk" }
+# AppUpdater 应用内更新（下载 APK + 安装）
+appupdater = { group = "com.github.jenly1314.AppUpdater", name = "app-updater", version.ref = "appupdater" }
+appupdater-dialog = { group = "com.github.jenly1314.AppUpdater", name = "app-dialog", version.ref = "appupdater" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

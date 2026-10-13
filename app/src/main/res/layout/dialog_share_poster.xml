@@ -7,7 +7,7 @@
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FF141824"
+    android:background="@color/bg_sheet"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -23,8 +23,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/share_poster_title"
-            android:textColor="#F8FAFC"
-            android:textSize="18sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_title"
             android:textStyle="bold" />
 
         <ImageButton
@@ -33,7 +33,7 @@
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/desc_close"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@drawable/ic_close" />
     </LinearLayout>
 
     <!-- 预览区：4:5 比例，高度在代码里按宽度计算 -->
@@ -46,7 +46,7 @@
             android:id="@+id/ivPreview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FF0B1220"
+            android:background="@color/bg_base"
             android:scaleType="fitXY" />
 
         <!-- PhotoEditor 编辑器（与 ivPreview 同尺寸逻辑，PHOTO 页签时显示） -->
@@ -54,7 +54,7 @@
             android:id="@+id/photoEditorView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FF0B1220"
+            android:background="@color/bg_base"
             android:visibility="gone" />
 
         <ProgressBar
@@ -79,7 +79,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/share_template_classic"
-            android:textSize="15sp" />
+            android:textSize="@dimen/text_body_l" />
 
         <TextView
             android:id="@+id/tabMap"
@@ -89,7 +89,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/share_template_map"
-            android:textSize="15sp" />
+            android:textSize="@dimen/text_body_l" />
 
         <TextView
             android:id="@+id/tabPhoto"
@@ -98,7 +98,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/share_template_photo"
-            android:textSize="15sp" />
+            android:textSize="@dimen/text_body_l" />
     </LinearLayout>
 
     <!-- 编辑工具栏（PHOTO 模板时可见） -->
@@ -124,8 +124,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_undo"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnRedo"
@@ -136,8 +136,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_redo"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnBrush"
@@ -148,8 +148,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_brush"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnEraser"
@@ -160,8 +160,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_eraser"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnAddText"
@@ -172,8 +172,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_text"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnAddEmoji"
@@ -184,8 +184,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_emoji"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnAddSticker"
@@ -196,8 +196,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_sticker"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
 
             <TextView
                 android:id="@+id/btnFilter"
@@ -207,8 +207,8 @@
                 android:gravity="center"
                 android:paddingHorizontal="14dp"
                 android:text="@string/share_edit_filter"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp" />
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_body_s" />
         </LinearLayout>
     </HorizontalScrollView>
 

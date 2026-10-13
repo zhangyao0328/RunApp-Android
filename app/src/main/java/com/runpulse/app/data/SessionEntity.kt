@@ -13,5 +13,9 @@ data class SessionEntity(
     val sportType: String,
     val startTime: Long,
     val endTime: Long? = null,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    /** 暂停功能：当前是否处于暂停中（纯本地状态，云端无概念） */
+    val isPaused: Boolean = false,
+    /** 已累计的暂停时长（毫秒），用于净运动时长 = end-start-totalPausedMs */
+    val totalPausedMs: Long = 0
 )

@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import com.runpulse.app.R
 import com.runpulse.app.data.TrackPointEntity
 import com.runpulse.app.stats.TrackStats
 import kotlin.math.cos
@@ -26,10 +27,11 @@ class CanvasTrackView @JvmOverloads constructor(
 ) : TrackMapView(context, attrs, defStyleAttr) {
 
     companion object {
-        private val COLOR_FAST = Color.parseColor("#4CAF50")
-        private val COLOR_SLOW = Color.parseColor("#F44336")
         private const val EARTH_RADIUS_M = 6_371_000.0
     }
+
+    private val colorFast = androidx.core.content.ContextCompat.getColor(context, R.color.track_fast)
+    private val colorSlow = androidx.core.content.ContextCompat.getColor(context, R.color.track_slow)
 
     private var points: List<TrackPointEntity> = emptyList()
 
@@ -47,7 +49,7 @@ class CanvasTrackView @JvmOverloads constructor(
         isFakeBoldText = true
     }
     private val emptyTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.GRAY
+        color = androidx.core.content.ContextCompat.getColor(context, R.color.text_muted)
         textSize = dp(14f)
         textAlign = Paint.Align.CENTER
     }
@@ -106,7 +108,7 @@ class CanvasTrackView @JvmOverloads constructor(
             } else {
                 ((speeds[i - 1] - minSpeed) / (maxSpeed - minSpeed)).coerceIn(0.0, 1.0)
             }
-            linePaint.color = lerpColor(COLOR_SLOW, COLOR_FAST, t)
+            linePaint.color = lerpColor(colorSlow, colorFast, t)
             canvas.drawLine(
                 xOf(points[i - 1].lng), yOf(points[i - 1].lat),
                 xOf(points[i].lng), yOf(points[i].lat),
@@ -115,8 +117,8 @@ class CanvasTrackView @JvmOverloads constructor(
         }
 
         // 4. 起点 / 终点标记
-        drawMarker(canvas, xOf(points.first().lng), yOf(points.first().lat), COLOR_FAST, "起")
-        drawMarker(canvas, xOf(points.last().lng), yOf(points.last().lat), COLOR_SLOW, "终")
+        drawMarker(canvas, xOf(points.first().lng), yOf(points.first().lat), colorFast, "起")
+        drawMarker(canvas, xOf(points.last().lng), yOf(points.last().lat), colorSlow, "终")
     }
 
     /** 相邻点瞬时速度（m/s）；漂移段（>30m/s）与无效段用其余有效段的均值兜底，避免色标被异常值拉垮 */

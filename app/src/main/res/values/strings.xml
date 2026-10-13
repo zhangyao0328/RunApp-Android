@@ -6,6 +6,34 @@
 
     <string name="btn_history">历史记录</string>
     <string name="btn_import_test_data">导入测试数据</string>
+    <string name="btn_sync_to_cloud">同步全部数据到云端</string>
+    <string name="btn_pause">暂停</string>
+    <string name="btn_resume">继续</string>
+    <string name="btn_stop">结束运动</string>
+    <string name="btn_battery_settings">后台设置</string>
+
+    <!-- 首页状态 -->
+    <string name="sport_run">跑步</string>
+    <string name="sport_trail">越野</string>
+    <string name="sport_bike">骑行</string>
+    <string name="sport_default">运动</string>
+    <string name="sport_run_start">开始跑步</string>
+    <string name="sport_trail_start">开始越野</string>
+    <string name="sport_bike_start">开始骑行</string>
+    <string name="start_tracking">开始%1$s</string>
+    <string name="status_ready">准备开始</string>
+    <string name="status_idle">未开始</string>
+    <string name="status_tracking_fmt">运动中 · %1$s</string>
+    <string name="status_paused_fmt">已暂停 · %1$s</string>
+    <string name="distance_idle">0.00 km</string>
+    <string name="distance_fmt">%.2f km</string>
+    <string name="duration_idle">时长：00:00:00</string>
+    <string name="duration_fmt">时长：%1$02d:%2$02d:%3$02d</string>
+    <string name="cadence_idle">步频：-- SPM</string>
+    <string name="cadence_fmt">步频：%1$d SPM</string>
+    <string name="exit_back_again">再按一次退出</string>
+    <string name="logout_done">已退出登录</string>
+    <string name="sync_triggered">同步任务已触发</string>
 
     <!-- 详情页统计行 -->
     <string name="stats_distance">距离</string>
@@ -13,6 +41,10 @@
     <string name="stats_avg_pace">平均配速</string>
     <string name="stats_avg_speed">平均速度</string>
     <string name="stats_elevation">累计爬升</string>
+    <string name="stats_avg_cadence">平均步频</string>
+    <string name="stats_avg_stride">平均步幅</string>
+    <string name="stride_fmt">%.2f m</string>
+    <string name="stride_idle">-- m</string>
 
     <!-- 教练点评 -->
     <string name="coach_title">AI 教练点评</string>
@@ -20,6 +52,8 @@
 
     <!-- 地图悬浮按钮 -->
     <string name="desc_locate">定位到我的位置</string>
+    <string name="desc_sport_type">运动类型</string>
+    <string name="desc_view_detail">查看详情</string>
     <string name="desc_zoom_in">放大地图</string>
     <string name="desc_zoom_out">缩小地图</string>
     <string name="desc_fit_track">显示完整轨迹</string>
@@ -38,15 +72,43 @@
     <string name="share_action">分享</string>
     <string name="desc_close">关闭</string>
 
+    <!-- 历史记录页 -->
+    <string name="history_title">运动记录</string>
+    <string name="history_empty_title">还没有运动记录</string>
+    <string name="history_empty_sub">完成一次运动，或导入 GPX / FIT 轨迹后就会显示在这里。</string>
+    <string name="import_track">导入轨迹</string>
+    <string name="import_track_desc">导入 GPX 或 FIT 轨迹文件</string>
+    <string name="importing">正在导入…</string>
+    <string name="import_unsupported">仅支持 .gpx / .fit 文件</string>
+    <string name="import_read_failed">无法读取文件</string>
+    <string name="import_parse_failed">解析失败：%1$s</string>
+    <string name="import_parse_generic">文件格式错误</string>
+    <string name="import_network_error">网络异常</string>
+    <string name="import_upload_failed">上传失败：%1$s</string>
+    <string name="import_success_fmt">已导入 %1$d 个轨迹点</string>
+    <string name="elevation_fmt">+%1$.0f m</string>
+
+    <!-- 轨迹导出/分享 -->
+    <string name="desc_export">导出轨迹</string>
+    <string name="export_track_title">导出轨迹</string>
+    <string name="export_format_gpx">GPX（通用格式）</string>
+    <string name="export_format_fit">FIT（Garmin 设备格式）</string>
+    <string name="export_track_failed">导出失败，请重试</string>
+    <string name="export_dest_title">导出方式</string>
+    <string name="export_dest_share">分享给其他应用</string>
+    <string name="export_dest_save">保存到手机（下载目录）</string>
+    <string name="export_track_saved">已保存到手机</string>
+    <string name="export_track_save_failed">保存失败，请重试</string>
+
     <!-- PhotoEditor 编辑工具栏 -->
-    <string name="share_edit_undo">↩ 撤销</string>
-    <string name="share_edit_redo">↪ 重做</string>
-    <string name="share_edit_brush">✏️ 画笔</string>
-    <string name="share_edit_eraser">🧹 橡皮</string>
-    <string name="share_edit_text">📝 文字</string>
-    <string name="share_edit_emoji">😀 表情</string>
-    <string name="share_edit_sticker">🏃 轨迹</string>
-    <string name="share_edit_filter">🎨 滤镜</string>
+    <string name="share_edit_undo">撤销</string>
+    <string name="share_edit_redo">重做</string>
+    <string name="share_edit_brush">画笔</string>
+    <string name="share_edit_eraser">橡皮</string>
+    <string name="share_edit_text">文字</string>
+    <string name="share_edit_emoji">表情</string>
+    <string name="share_edit_sticker">轨迹</string>
+    <string name="share_edit_filter">滤镜</string>
     <string name="share_edit_add_text_hint">输入文字</string>
     <string name="share_edit_brush_color">画笔颜色</string>
     <string name="share_edit_brush_size">画笔粗细</string>
@@ -79,4 +141,12 @@
     <string name="auth_error_password_mismatch">两次输入的密码不一致</string>
     <string name="auth_error_login_failed">登录失败，请重试</string>
     <string name="auth_error_register_failed">注册失败，请重试</string>
+
+    <!-- 第三方登录 -->
+    <string name="auth_other_login">其他登录方式</string>
+    <string name="auth_wechat_login">微信登录</string>
+    <string name="auth_phone_login">一键登录</string>
+    <string name="auth_error_wechat_not_installed">请先安装微信客户端</string>
+    <string name="auth_error_wechat_failed">微信登录失败，请重试</string>
+    <string name="auth_error_phone_failed">一键登录失败，请重试</string>
 </resources>

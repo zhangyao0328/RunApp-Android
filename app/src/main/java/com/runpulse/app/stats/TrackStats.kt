@@ -77,12 +77,40 @@ object TrackStats {
         return String.format("%d'%02d\"/km", min, sec)
     }
 
+    /**
+     * 平均配速（跑/越野），排除暂停时间。
+     * @param totalPausedMs 累计暂停时长（毫秒），从 SessionEntity.totalPausedMs 获取
+     */
+    fun avgPaceString(points: List<TrackPointEntity>, totalPausedMs: Long): String {
+        if (points.size < 2) return "--"
+        val distKm = distanceKm(points)
+        val wallDurMs = points.last().timestamp - points.first().timestamp
+        val netDurSec = (wallDurMs - totalPausedMs).coerceAtLeast(0) / 1000.0
+        if (distKm < 0.01 || netDurSec < 1) return "--"
+        val paceSecPerKm = netDurSec / distKm
+        val min = (paceSecPerKm / 60).toInt()
+        val sec = (paceSecPerKm % 60).toInt()
+        return String.format("%d'%02d\"/km", min, sec)
+    }
+
     /** 平均速度（km/h），骑行用；时长不足返回 0 */
     fun avgSpeedKmh(points: List<TrackPointEntity>): Double {
         if (points.size < 2) return 0.0
         val durHours = (points.last().timestamp - points.first().timestamp) / 3_600_000.0
         if (durHours <= 0) return 0.0
         return distanceKm(points) / durHours
+    }
+
+    /**
+     * 平均速度（km/h），骑行用，排除暂停时间。
+     * @param totalPausedMs 累计暂停时长（毫秒），从 SessionEntity.totalPausedMs 获取
+     */
+    fun avgSpeedKmh(points: List<TrackPointEntity>, totalPausedMs: Long): Double {
+        if (points.size < 2) return 0.0
+        val wallDurMs = points.last().timestamp - points.first().timestamp
+        val netDurHours = (wallDurMs - totalPausedMs).coerceAtLeast(0) / 3_600_000.0
+        if (netDurHours <= 0) return 0.0
+        return distanceKm(points) / netDurHours
     }
 
     /** 时长格式化 HH:MM:SS */
@@ -92,5 +120,48 @@ object TrackStats {
         val m = (totalSec % 3600) / 60
         val s = totalSec % 60
         return String.format("%02d:%02d:%02d", h, m, s)
+    }
+
+    /**
+     * 净运动时长格式化 HH:MM:SS，排除暂停时间。
+     * @param totalPausedMs 累计暂停时长（毫秒），从 SessionEntity.totalPausedMs 获取
+     */
+    fun formatNetDuration(startMs: Long, endMs: Long, totalPausedMs: Long): String {
+        val netMs = (endMs - startMs - totalPausedMs).coerceAtLeast(0)
+        val totalSec = netMs / 1000
+        val h = totalSec / 3600
+        val m = (totalSec % 3600) / 60
+        val s = totalSec % 60
+        return String.format("%02d:%02d:%02d", h, m, s)
+    }
+
+    /**
+     * 平均步频（SPM）：从轨迹点的 cadence 字段计算平均值。
+     * 只统计 cadence > 0 的有效点。
+     */
+    fun avgCadence(points: List<TrackPointEntity>): Int {
+        val validCadences = points.mapNotNull { it.cadence }.filter { it > 0 }
+        if (validCadences.isEmpty()) return 0
+        return validCadences.average().toInt()
+    }
+
+    /**
+     * 平均步幅（米/步）：科学计算方式 = 总距离 / 总步数。
+     * 总步数 = 平均步频(SPM) × 净运动时长(分钟)。
+     * 无数据返回 0。
+     */
+    fun avgStrideLengthM(points: List<TrackPointEntity>, totalPausedMs: Long): Double {
+        val cadence = avgCadence(points)
+        if (cadence <= 0) return 0.0
+        
+        val distM = distanceKm(points) * 1000.0
+        if (distM < 1) return 0.0
+        
+        val wallDurMs = points.last().timestamp - points.first().timestamp
+        val netDurMin = (wallDurMs - totalPausedMs).coerceAtLeast(0) / 60_000.0
+        if (netDurMin < 0.1) return 0.0
+        
+        val totalSteps = cadence * netDurMin
+        return distM / totalSteps
     }
 }

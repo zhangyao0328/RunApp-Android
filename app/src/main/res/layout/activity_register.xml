@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingHorizontal="32dp"
+        android:paddingHorizontal="@dimen/spacing_2xl"
         android:paddingTop="60dp"
         android:paddingBottom="40dp">
 
@@ -20,7 +20,7 @@
         <View
             android:layout_width="64dp"
             android:layout_height="6dp"
-            android:background="#F97316" />
+            android:background="@color/brand_primary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,8 +28,8 @@
             android:layout_marginTop="16dp"
             android:fontFamily="@font/barlow_condensed_bold"
             android:text="RUNPULSE"
-            android:textColor="#F8FAFC"
-            android:textSize="42sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_display_xl"
             android:letterSpacing="0.15" />
 
         <TextView
@@ -37,8 +37,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/auth_register_subtitle"
-            android:textColor="#94A3B8"
-            android:textSize="15sp" />
+            android:textColor="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 用户名输入 -->
         <EditText
@@ -51,9 +51,9 @@
             android:inputType="text"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 昵称输入 -->
         <EditText
@@ -66,9 +66,9 @@
             android:inputType="text"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 密码输入 -->
         <EditText
@@ -81,9 +81,9 @@
             android:inputType="textPassword"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 确认密码输入 -->
         <EditText
@@ -96,9 +96,9 @@
             android:inputType="textPassword"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 错误提示 -->
         <TextView
@@ -106,8 +106,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="#EF4444"
-            android:textSize="13sp"
+            android:textColor="@color/state_error"
+            android:textSize="@dimen/text_body_s"
             android:visibility="gone" />
 
         <!-- 注册按钮 -->
@@ -123,8 +123,8 @@
                 android:background="@drawable/bg_auth_button"
                 android:gravity="center"
                 android:text="@string/auth_register"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
+                android:textColor="@color/on_brand_primary"
+                android:textSize="@dimen/text_body_l"
                 android:textStyle="bold" />
 
             <ProgressBar
@@ -132,7 +132,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center"
-                android:indeterminateTint="#FFFFFF"
+                android:indeterminateTint="@color/on_brand_primary"
                 android:visibility="gone" />
         </FrameLayout>
 
@@ -147,8 +147,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/auth_has_account"
-                android:textColor="#94A3B8"
-                android:textSize="14sp" />
+                android:textColor="@color/text_muted"
+                android:textSize="@dimen/text_body" />
 
             <TextView
                 android:id="@+id/btnGoLogin"
@@ -156,8 +156,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="@string/auth_go_login"
-                android:textColor="#F97316"
-                android:textSize="14sp"
+                android:textColor="@color/brand_secondary"
+                android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

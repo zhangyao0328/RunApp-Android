@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.runpulse.app.R
 import com.runpulse.app.databinding.ItemSessionBinding
 import com.runpulse.app.tracking.SportType
 import java.text.SimpleDateFormat
@@ -13,7 +14,7 @@ import java.util.Locale
 
 /**
  * 历史会话列表 Adapter。
- * 运动类型用 emoji 文字（🏃⛰️🚴）代替图标资源，保持工程无二进制资源。
+ * 运动类型用 vector 图标（ic_sport_run / hike / bike）渲染。
  */
 class HistoryAdapter(
     private val onItemClick: (SessionSummary) -> Unit
@@ -46,12 +47,14 @@ class HistoryAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(summary: SessionSummary) {
-            binding.tvEmoji.text = when (summary.session.sportType) {
-                SportType.RUN.value -> "🏃"
-                SportType.TRAIL.value -> "⛰️"
-                SportType.BIKE.value -> "🚴"
-                else -> "🏃"
-            }
+            binding.ivSport.setImageResource(
+                when (summary.session.sportType) {
+                    SportType.RUN.value -> R.drawable.ic_sport_run
+                    SportType.TRAIL.value -> R.drawable.ic_sport_hike
+                    SportType.BIKE.value -> R.drawable.ic_sport_bike
+                    else -> R.drawable.ic_sport_run
+                }
+            )
             binding.tvDate.text = DATE_FORMAT.format(Date(summary.session.startTime))
             binding.tvStats.text = String.format(
                 Locale.CHINA,

@@ -76,7 +76,7 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
     // ---- PhotoEditor ----
     private var photoEditor: PhotoEditor? = null
     private var isBrushMode = false
-    private var currentBrushColor = 0xFFF97316.toInt() // 能量橙
+    private var currentBrushColor = 0xFFF97316.toInt() // 能量橙（默认画笔色）
     private var currentBrushSize = 20f
 
     override fun onCreateView(
@@ -198,7 +198,7 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             if (isBrushMode) R.drawable.bg_poster_tab_selected else R.drawable.bg_poster_tab_normal
         )
         binding.btnBrush.setTextColor(
-            if (isBrushMode) 0xFF141824.toInt() else 0xFFF8FAFC.toInt()
+            if (isBrushMode) requireContext().getColor(R.color.bg_sheet) else requireContext().getColor(R.color.text_primary)
         )
     }
 
@@ -210,14 +210,14 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             val pad = (20 * resources.displayMetrics.density).toInt()
             setPadding(pad, pad / 2, pad, pad / 2)
         }
-        android.app.AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.share_edit_text)
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val text = input.text.toString().trim()
                 if (text.isNotEmpty()) {
                     val styleBuilder = TextStyleBuilder()
-                    styleBuilder.withTextColor(0xFFF8FAFC.toInt())
+                    styleBuilder.withTextColor(requireContext().getColor(R.color.text_primary))
                     ResourcesCompat.getFont(requireContext(), R.font.barlow_medium)?.let {
                         styleBuilder.withTextFont(it)
                     }
@@ -235,7 +235,7 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             val pad = (20 * resources.displayMetrics.density).toInt()
             setPadding(pad, pad / 2, pad, pad / 2)
         }
-        android.app.AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.share_edit_text)
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -255,7 +255,7 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             "🏃", "🚴", "🏊", "⛰️", "🔥", "💪", "🎯", "⭐",
             "❤️", "🎉", "👟", "🏅", "⚡", "🌟", "💯", "🚀"
         )
-        android.app.AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.share_edit_emoji)
             .setItems(emojis) { _, which ->
                 photoEditor?.addEmoji(emojis[which])
@@ -302,7 +302,7 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             PhotoFilter.POSTERIZE, PhotoFilter.SATURATE, PhotoFilter.SEPIA,
             PhotoFilter.SHARPEN, PhotoFilter.TEMPERATURE, PhotoFilter.TINT, PhotoFilter.VIGNETTE
         )
-        android.app.AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.share_edit_filter)
             .setItems(filters) { _, which ->
                 val filter = filterEnums[which]
@@ -394,7 +394,9 @@ class SharePosterDialogFragment : BottomSheetDialogFragment() {
             view.setBackgroundResource(
                 if (selected) R.drawable.bg_poster_tab_selected else R.drawable.bg_poster_tab_normal
             )
-            view.setTextColor(if (selected) 0xFF141824.toInt() else 0xFFF8FAFC.toInt())
+            view.setTextColor(
+                if (selected) requireContext().getColor(R.color.bg_sheet) else requireContext().getColor(R.color.text_primary)
+            )
         }
     }
 

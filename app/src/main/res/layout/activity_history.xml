@@ -1,7 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 历史记录页：全屏列表 -->
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/recyclerHistory"
-    android:clipToPadding="false"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_height="match_parent"
+    android:background="@color/bg_base">
+
+    <LinearLayout
+        android:id="@+id/historyContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvHistoryTitle"
+            style="@style/RunPulse.Text.Headline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/spacing_l"
+            android:paddingTop="@dimen/spacing_l"
+            android:paddingEnd="@dimen/spacing_l"
+            android:paddingBottom="@dimen/spacing_m"
+            android:text="@string/history_title" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerHistory"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingHorizontal="@dimen/spacing_l"
+                android:paddingBottom="96dp" />
+            <LinearLayout
+                android:id="@+id/emptyHistory"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_2xl"
+                android:visibility="gone">
+                <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:contentDescription="@string/history_empty_title"
+                    android:src="@drawable/ic_sport_run"
+                    app:tint="@color/text_faint" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_l"
+                    android:text="@string/history_empty_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_title"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_s"
+                    android:gravity="center"
+                    android:text="@string/history_empty_sub"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_body" />
+            </LinearLayout>
+            <ProgressBar
+                android:id="@+id/importProgress"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/brand_primary"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnImport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/spacing_l"
+        android:layout_marginBottom="@dimen/spacing_l"
+        android:text="@string/import_track"
+        android:textColor="@color/on_brand_primary"
+        android:contentDescription="@string/import_track_desc"
+        app:icon="@drawable/ic_add"
+        app:iconTint="@color/on_brand_primary"
+        app:backgroundTint="@color/brand_primary" />
+</FrameLayout>

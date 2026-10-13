@@ -1,9 +1,12 @@
 package com.runpulse.app.api
 
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -31,4 +34,9 @@ interface RunPulseApi {
     /** 诊断事件上报，best-effort */
     @POST("/api/v1/events")
     suspend fun postEvents(@Body body: DiagEventsRequest): Response<Unit>
+
+    /** 导入 GPX / FIT 轨迹文件（multipart，参数名 file） */
+    @Multipart
+    @POST("/api/v1/sessions/import")
+    suspend fun importTrack(@Part file: MultipartBody.Part): Response<ImportTrackResponse>
 }

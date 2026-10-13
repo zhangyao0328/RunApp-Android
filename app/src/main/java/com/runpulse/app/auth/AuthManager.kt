@@ -52,13 +52,19 @@ object AuthManager {
     /**
      * 本地模拟登录：校验用户名+密码 → 生成 token → 保存登录态。
      * 模拟网络延迟 800ms。
+     *
+     * 本地模拟阶段的体验约定：账号不存在时【自动注册并登录】（以输入的密码建档），
+     * 避免"用户不存在"阻断使用；已存在的账号仍校验密码。
      */
     suspend fun login(username: String, password: String): Result<UserInfo> =
         withContext(Dispatchers.IO) {
             delay(800) // 模拟网络延迟
 
             val userJson = usersPrefs.getString(username, null)
-                ?: return@withContext Result.failure(AuthException("用户不存在"))
+            if (userJson == null) {
+                // 账号不存在：自动注册（displayName 默认用用户名）并直接登录
+                return@withContext register(username, password, username)
+            }
 
             val user = JSONObject(userJson)
             val storedHash = user.getString("passwordHash")
@@ -123,6 +129,114 @@ object AuthManager {
     fun logout() {
         prefs.edit().clear().apply()
     }
+
+    // ---------- 第三方登录 ----------
+
+    /**
+     * 根据用户名查找用户（供第三方登录使用）。
+     */
+    /** 本地用户表是否已有该用户名（调试用） */
+    fun userExists(username: String): Boolean = usersPrefs.contains(username)
+
+    fun findUserByUsername(username: String): JSONObject? {
+        val userJson = usersPrefs.getString(username, null) ?: return null
+        return JSONObject(userJson)
+    }
+
+    /**
+     * 微信登录（由 WeChatAuthManager 调用）。
+     */
+    suspend fun loginWithWeChat(username: String, displayName: String): Result<UserInfo> =
+        withContext(Dispatchers.IO) {
+            val userJson = usersPrefs.getString(username, null)
+                ?: return@withContext Result.failure(AuthException("用户不存在"))
+
+            val user = JSONObject(userJson)
+            val token = "wechat_${UUID.randomUUID()}"
+            val userInfo = UserInfo(
+                userId = user.getString("userId"),
+                username = username,
+                displayName = displayName,
+                token = token
+            )
+            saveLoginState(userInfo)
+            WeChatAuthManager.notifyLoginResult(Result.success(userInfo))
+            Result.success(userInfo)
+        }
+
+    /**
+     * 微信注册（由 WeChatAuthManager 调用）。
+     */
+    suspend fun registerWithWeChat(username: String, displayName: String): Result<UserInfo> =
+        withContext(Dispatchers.IO) {
+            if (usersPrefs.contains(username)) {
+                return@withContext Result.failure(AuthException("用户已存在"))
+            }
+
+            val userId = UUID.randomUUID().toString()
+            val token = "wechat_${UUID.randomUUID()}"
+
+            val userJson = JSONObject().apply {
+                put("userId", userId)
+                put("displayName", displayName)
+                put("loginType", "wechat")
+                put("createdAt", System.currentTimeMillis())
+            }
+            usersPrefs.edit().putString(username, userJson.toString()).apply()
+
+            val userInfo = UserInfo(userId, username, displayName, token)
+            saveLoginState(userInfo)
+            WeChatAuthManager.notifyLoginResult(Result.success(userInfo))
+            Result.success(userInfo)
+        }
+
+    /**
+     * 手机号登录（由 PhoneAuthManager 调用）。
+     */
+    suspend fun loginWithPhone(username: String, displayName: String, phone: String): Result<UserInfo> =
+        withContext(Dispatchers.IO) {
+            val userJson = usersPrefs.getString(username, null)
+                ?: return@withContext Result.failure(AuthException("用户不存在"))
+
+            val user = JSONObject(userJson)
+            val token = "phone_${UUID.randomUUID()}"
+            val userInfo = UserInfo(
+                userId = user.getString("userId"),
+                username = username,
+                displayName = displayName,
+                token = token
+            )
+            saveLoginState(userInfo)
+            PhoneAuthManager.notifyLoginResult(Result.success(userInfo))
+            Result.success(userInfo)
+        }
+
+    /**
+     * 手机号注册（由 PhoneAuthManager 调用）。
+     */
+    suspend fun registerWithPhone(username: String, displayName: String, phone: String): Result<UserInfo> =
+        withContext(Dispatchers.IO) {
+            if (usersPrefs.contains(username)) {
+                return@withContext Result.failure(AuthException("用户已存在"))
+            }
+
+            val userId = UUID.randomUUID().toString()
+            val token = "phone_${UUID.randomUUID()}"
+
+            val userJson = JSONObject().apply {
+                put("userId", userId)
+                put("displayName", displayName)
+                put("phone", phone)
+                put("loginType", "phone")
+                put("createdAt", System.currentTimeMillis())
+            }
+            usersPrefs.edit().putString(username, userJson.toString()).apply()
+
+            val userInfo = UserInfo(userId, username, displayName, token)
+            saveLoginState(userInfo)
+            PhoneAuthManager.notifyLoginResult(Result.success(userInfo))
+            Result.success(userInfo)
+        }
 
     // ---------- 内部方法 ----------
 

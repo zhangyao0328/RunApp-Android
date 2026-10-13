@@ -19,6 +19,7 @@ data class PointDto(
     @SerializedName("speed") val speed: Float,
     @SerializedName("accuracy") val accuracy: Float,
     @SerializedName("heart_rate") val heartRate: Int?,
+    @SerializedName("cadence") val cadence: Int?,
     @SerializedName("timestamp") val timestamp: Long
 )
 
@@ -56,4 +57,11 @@ data class DiagEvent(
 
 data class DiagEventsRequest(
     @SerializedName("events") val events: List<DiagEvent>
+)
+
+/** 轨迹文件导入响应 */
+data class ImportTrackResponse(
+    @SerializedName("sessionId") val sessionId: String?,
+    @SerializedName("sportType") val sportType: String?,
+    @SerializedName("pointCount") val pointCount: Int?
 )

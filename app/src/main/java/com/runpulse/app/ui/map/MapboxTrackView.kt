@@ -28,6 +28,7 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
 import com.runpulse.app.BuildConfig
+import com.runpulse.app.R
 import com.runpulse.app.data.TrackPointEntity
 import com.runpulse.app.stats.TrackStats
 
@@ -48,6 +49,10 @@ class MapboxTrackView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : TrackMapView(context, attrs, defStyleAttr) {
+
+    /** 设计令牌取色（track_fast / track_slow / map_location 等） */
+    private fun colorRes(id: Int): Int =
+        androidx.core.content.ContextCompat.getColor(context, id)
 
     private val mapView: MapView
     private var polylineManager: PolylineAnnotationManager? = null
@@ -138,7 +143,7 @@ class MapboxTrackView @JvmOverloads constructor(
                 CircleAnnotationOptions()
                     .withPoint(point)
                     .withCircleRadius(7.0)
-                    .withCircleColor(Color.parseColor("#1E88E5"))
+                    .withCircleColor(colorRes(R.color.map_location))
                     .withCircleStrokeWidth(2.0)
                     .withCircleStrokeColor(Color.WHITE)
             )
@@ -194,7 +199,7 @@ class MapboxTrackView @JvmOverloads constructor(
         polyline.create(
             PolylineAnnotationOptions()
                 .withPoints(mapPoints)
-                .withLineColor(Color.parseColor("#4CAF50"))
+                .withLineColor(colorRes(R.color.track_fast))
                 .withLineWidth(4.0)
         )
 
@@ -202,13 +207,13 @@ class MapboxTrackView @JvmOverloads constructor(
             CircleAnnotationOptions()
                 .withPoint(mapPoints.first())
                 .withCircleRadius(8.0)
-                .withCircleColor(Color.parseColor("#4CAF50"))
+                .withCircleColor(colorRes(R.color.track_fast))
         )
         trackCircles += circles.create(
             CircleAnnotationOptions()
                 .withPoint(mapPoints.last())
                 .withCircleRadius(8.0)
-                .withCircleColor(Color.parseColor("#F44336"))
+                .withCircleColor(colorRes(R.color.track_slow))
         )
 
         // 相机移动到轨迹包围盒；用户已手动缩放/平移过则不打扰（Strava 行为）

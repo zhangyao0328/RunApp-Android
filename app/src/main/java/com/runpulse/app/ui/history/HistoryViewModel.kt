@@ -40,14 +40,14 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         val distanceKm = TrackStats.distanceKm(points)
         val endMs = session.endTime ?: points.lastOrNull()?.timestamp ?: session.startTime
         val paceOrSpeed = if (session.sportType == SportType.BIKE.value) {
-            String.format(Locale.CHINA, "%.1f km/h", TrackStats.avgSpeedKmh(points))
+            String.format(Locale.CHINA, "%.1f km/h", TrackStats.avgSpeedKmh(points, session.totalPausedMs))
         } else {
-            TrackStats.avgPaceString(points)
+            TrackStats.avgPaceString(points, session.totalPausedMs)
         }
         return SessionSummary(
             session = session,
             distanceKm = distanceKm,
-            durationText = TrackStats.formatDuration(session.startTime, endMs),
+            durationText = TrackStats.formatNetDuration(session.startTime, endMs, session.totalPausedMs),
             paceOrSpeedText = paceOrSpeed
         )
     }

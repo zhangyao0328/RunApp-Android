@@ -58,6 +58,8 @@ class TrackingService : Service() {
         private const val TAG = "TrackingService"
         const val ACTION_START = "com.runpulse.app.action.START"
         const val ACTION_STOP = "com.runpulse.app.action.STOP"
+        const val ACTION_PAUSE = "com.runpulse.app.action.PAUSE"
+        const val ACTION_RESUME = "com.runpulse.app.action.RESUME"
         const val EXTRA_SPORT_TYPE = "extra_sport_type"
 
         private const val NOTIFICATION_ID = 1001
@@ -91,6 +93,12 @@ class TrackingService : Service() {
 
     private var currentSessionId: String? = null
 
+    // 暂停状态（纯本地，云端无概念：暂停段不落点，统计自然不含暂停时间）
+    @Volatile
+    private var isPaused = false
+    private var pausedStartMs = 0L
+    private var accumulatedPausedMs = 0L
+
     // 攒批计数器
     private var pointsSinceTrigger = 0
     private var lastTriggerAt = 0L
@@ -115,10 +123,48 @@ class TrackingService : Service() {
                 startSession(sportType)
             }
             ACTION_STOP -> stopSession()
+            ACTION_PAUSE -> pauseSession()
+            ACTION_RESUME -> resumeSession()
             // START_STICKY 被系统重启时 intent == null：尝试恢复未结束的会话
             null -> resumeActiveSessionIfAny()
         }
         return START_STICKY
+    }
+
+    // ---------- 暂停/继续 ----------
+
+    private fun pauseSession() {
+        val sessionId = currentSessionId ?: return
+        if (isPaused) return
+        isPaused = true
+        pausedStartMs = System.currentTimeMillis()
+        cadenceDetector?.stopListening()
+        serviceScope.launch {
+            dao.setSessionPaused(sessionId)
+        }
+        updateNotification()
+        DiagLogger.log(this, sessionId, "session_pause")
+        Log.d(TAG, "会话已暂停：$sessionId")
+    }
+
+    private fun resumeSession() {
+        val sessionId = currentSessionId ?: return
+        if (!isPaused) return
+        isPaused = false
+        accumulatedPausedMs += System.currentTimeMillis() - pausedStartMs
+        pausedStartMs = 0L
+        // 恢复跑步步频检测（与 startSession 一致）
+        if (currentSportType == SportType.RUN && cadenceDetector == null) {
+            cadenceDetector = CadenceDetector(this).apply { startListening() }
+        } else {
+            cadenceDetector?.startListening()
+        }
+        serviceScope.launch {
+            dao.setSessionResumed(sessionId, accumulatedPausedMs)
+        }
+        updateNotification()
+        DiagLogger.log(this, sessionId, "session_resume_manual")
+        Log.d(TAG, "会话已继续：$sessionId, totalPausedMs=$accumulatedPausedMs")
     }
 
     // ---------- 会话生命周期 ----------
@@ -191,6 +237,10 @@ class TrackingService : Service() {
                 if (active != null) {
                     Log.w(TAG, "内存中无会话，从本地库恢复并结束：${active.sessionId}")
                     DiagLogger.log(this@TrackingService, active.sessionId, "session_stop_recovered")
+                    // 暂停中的会话先结算暂停时长，保证净时长统计正确
+                    if (active.isPaused) {
+                        dao.setSessionResumed(active.sessionId, active.totalPausedMs)
+                    }
                     finishSession(active.sessionId, endTime)
                 } else {
                     Log.w(TAG, "没有进行中的会话，忽略结束指令")
@@ -202,7 +252,16 @@ class TrackingService : Service() {
 
         fusedClient.removeLocationUpdates(locationCallback)
         currentSessionId = null
-        finishSession(sessionId, endTime)
+        // 暂停中的会话先结算暂停时长再结束
+        if (isPaused) {
+            accumulatedPausedMs += endTime - pausedStartMs
+            isPaused = false
+            pausedStartMs = 0L
+        }
+        serviceScope.launch {
+            dao.setSessionResumed(sessionId, accumulatedPausedMs)
+            finishSession(sessionId, endTime)
+        }
     }
 
     /** 结束会话的公共收尾：落库 → 上报云端 → 触发尾巴上传 → 停前台服务 */
@@ -234,6 +293,11 @@ class TrackingService : Service() {
             val active = dao.getActiveSession()
             if (active != null && hasLocationPermission()) {
                 currentSessionId = active.sessionId
+                currentSportType = SportType.fromValue(active.sportType)
+                // 还原暂停状态：被杀期间本来就不采集，恢复后若仍在暂停中则继续不落点
+                isPaused = active.isPaused
+                accumulatedPausedMs = active.totalPausedMs
+                pausedStartMs = if (active.isPaused) System.currentTimeMillis() else 0L
                 startForegroundWithNotification()
                 requestLocationUpdates()
                 // 关键事件：出现 resume 说明进程曾被系统杀死（或被覆盖安装），
@@ -261,6 +325,7 @@ class TrackingService : Service() {
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             val sessionId = currentSessionId ?: return
+            if (isPaused) return // 暂停期间不落点、不计数，统计自然排除暂停时间
             // 批量回传：一次回调可能包含多个点，逐个立即落盘
             for (location in result.locations) {
                 // 断流检测：相邻点时间差超阈值记事件（锁屏/被杀/GPS 丢星都会体现为断流）
@@ -351,6 +416,7 @@ class TrackingService : Service() {
     /** 构建实时更新的通知内容 */
     private suspend fun buildNotificationText(): String {
         val sessionId = currentSessionId ?: return "距离 -- km · 配速 --'--\""
+        if (isPaused) return "已暂停 · 点击 App 恢复运动"
         
         // 从数据库查询当前会话的轨迹点
         val points = dao.getSessionPoints(sessionId)

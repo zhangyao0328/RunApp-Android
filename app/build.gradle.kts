@@ -93,4 +93,19 @@ dependencies {
 
     // PhotoEditor 海报图片编辑（画笔/文字/贴纸/滤镜/撤销重做）
     implementation(libs.photoeditor)
+
+    // 微信开放平台 SDK（登录）
+    implementation(libs.wechat.sdk)
+
+    // AppUpdater 应用内更新（下载 APK + 安装）
+    implementation(libs.appupdater)
+    implementation(libs.appupdater.dialog)
+
+    // Garmin 官方 FIT Java SDK（轨迹导出 FIT 格式；Maven Central 实际坐标为 com.garmin:fit）
+    implementation("com.garmin:fit:21.214.0")
+
+    // 阿里云号码认证 SDK（本地 AAR，需从阿里云控制台下载放入 libs/）
+    // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+    // 阿里云 SDK 需要的 fastjson
+    // implementation("com.alibaba:fastjson:1.2.83")
 }

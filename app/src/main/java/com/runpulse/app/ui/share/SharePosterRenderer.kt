@@ -414,14 +414,15 @@ object SharePosterRenderer {
     ) {
         val startMs = session?.startTime ?: points.firstOrNull()?.timestamp ?: 0L
         val endMs = session?.endTime ?: points.lastOrNull()?.timestamp ?: startMs
+        val totalPausedMs = session?.totalPausedMs ?: 0L
         val isBike = session?.sportType == SportType.BIKE.value
         val paceValue = if (isBike) {
-            String.format(Locale.CHINA, "%.1f", TrackStats.avgSpeedKmh(points))
+            String.format(Locale.CHINA, "%.1f", TrackStats.avgSpeedKmh(points, totalPausedMs))
         } else {
-            TrackStats.avgPaceString(points)
+            TrackStats.avgPaceString(points, totalPausedMs)
         }
         val stats = listOf(
-            (durationOverride ?: TrackStats.formatDuration(startMs, endMs)) to "时长",
+            (durationOverride ?: TrackStats.formatNetDuration(startMs, endMs, totalPausedMs)) to "时长",
             (paceOverride ?: paceValue) to if (isBike) "平均速度 km/h" else "平均配速 /km",
             (elevationOverride ?: String.format(Locale.CHINA, "+%.0f", TrackStats.elevationGainM(points))) to "爬升 m"
         )
@@ -460,12 +461,13 @@ object SharePosterRenderer {
     fun defaultPhotoTexts(points: List<TrackPointEntity>, session: SessionEntity?): PhotoPosterDefaults {
         val startMs = session?.startTime ?: points.firstOrNull()?.timestamp ?: 0L
         val endMs = session?.endTime ?: points.lastOrNull()?.timestamp ?: startMs
+        val totalPausedMs = session?.totalPausedMs ?: 0L
         val isBike = session?.sportType == SportType.BIKE.value
         return PhotoPosterDefaults(
             distance = String.format(Locale.CHINA, "%.2f", TrackStats.distanceKm(points)),
-            duration = TrackStats.formatDuration(startMs, endMs),
-            pace = if (isBike) String.format(Locale.CHINA, "%.1f", TrackStats.avgSpeedKmh(points))
-                   else TrackStats.avgPaceString(points),
+            duration = TrackStats.formatNetDuration(startMs, endMs, totalPausedMs),
+            pace = if (isBike) String.format(Locale.CHINA, "%.1f", TrackStats.avgSpeedKmh(points, totalPausedMs))
+                   else TrackStats.avgPaceString(points, totalPausedMs),
             elevation = String.format(Locale.CHINA, "+%.0f", TrackStats.elevationGainM(points)),
             paceLabel = if (isBike) "平均速度 km/h" else "平均配速 /km"
         )

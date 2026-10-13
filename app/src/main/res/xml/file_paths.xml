@@ -4,4 +4,8 @@
     <external-files-path
         name="posters"
         path="Pictures/posters/" />
+    <!-- 轨迹导出文件（GPX/FIT），写 cacheDir/exports -->
+    <cache-path
+        name="exports"
+        path="exports/" />
 </paths>

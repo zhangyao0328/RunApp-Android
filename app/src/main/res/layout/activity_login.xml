@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingHorizontal="32dp"
+        android:paddingHorizontal="@dimen/spacing_2xl"
         android:paddingTop="80dp"
         android:paddingBottom="40dp">
 
@@ -20,7 +20,7 @@
         <View
             android:layout_width="64dp"
             android:layout_height="6dp"
-            android:background="#F97316" />
+            android:background="@color/brand_primary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,8 +28,8 @@
             android:layout_marginTop="16dp"
             android:fontFamily="@font/barlow_condensed_bold"
             android:text="RUNPULSE"
-            android:textColor="#F8FAFC"
-            android:textSize="42sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_display_xl"
             android:letterSpacing="0.15" />
 
         <TextView
@@ -37,8 +37,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/auth_login_subtitle"
-            android:textColor="#94A3B8"
-            android:textSize="15sp" />
+            android:textColor="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 用户名输入 -->
         <EditText
@@ -51,9 +51,9 @@
             android:inputType="text"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 密码输入 -->
         <EditText
@@ -66,9 +66,9 @@
             android:inputType="textPassword"
             android:maxLines="1"
             android:paddingHorizontal="16dp"
-            android:textColor="#F8FAFC"
-            android:textColorHint="#94A3B8"
-            android:textSize="16sp" />
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="@dimen/text_body_l" />
 
         <!-- 错误提示 -->
         <TextView
@@ -76,8 +76,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="#EF4444"
-            android:textSize="13sp"
+            android:textColor="@color/state_error"
+            android:textSize="@dimen/text_body_s"
             android:visibility="gone" />
 
         <!-- 登录按钮 -->
@@ -93,8 +93,8 @@
                 android:background="@drawable/bg_auth_button"
                 android:gravity="center"
                 android:text="@string/auth_login"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
+                android:textColor="@color/on_brand_primary"
+                android:textSize="@dimen/text_body_l"
                 android:textStyle="bold" />
 
             <ProgressBar
@@ -102,7 +102,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center"
-                android:indeterminateTint="#FFFFFF"
+                android:indeterminateTint="@color/on_brand_primary"
                 android:visibility="gone" />
         </FrameLayout>
 
@@ -117,8 +117,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/auth_no_account"
-                android:textColor="#94A3B8"
-                android:textSize="14sp" />
+                android:textColor="@color/text_muted"
+                android:textSize="@dimen/text_body" />
 
             <TextView
                 android:id="@+id/btnGoRegister"
@@ -126,8 +126,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="@string/auth_go_register"
-                android:textColor="#F97316"
-                android:textSize="14sp"
+                android:textColor="@color/brand_secondary"
+                android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -138,7 +138,66 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="@string/auth_skip"
-            android:textColor="#94A3B8"
-            android:textSize="14sp" />
+            android:textColor="@color/text_muted"
+            android:textSize="@dimen/text_body" />
+
+        <!-- 分割线 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/divider" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:text="@string/auth_other_login"
+                android:textColor="@color/text_faint"
+                android:textSize="@dimen/text_body_s" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/divider" />
+        </LinearLayout>
+
+        <!-- 第三方登录按钮 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- 微信登录 -->
+            <ImageView
+                android:id="@+id/btnWechatLogin"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_auth_social_button"
+                android:contentDescription="@string/auth_wechat_login"
+                android:padding="12dp"
+                android:src="@drawable/ic_wechat" />
+
+            <!-- 一键登录 -->
+            <ImageView
+                android:id="@+id/btnPhoneLogin"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="24dp"
+                android:background="@drawable/bg_auth_social_button"
+                android:contentDescription="@string/auth_phone_login"
+                android:padding="12dp"
+                android:src="@drawable/ic_phone" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

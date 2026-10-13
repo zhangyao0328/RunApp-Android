@@ -1,39 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 历史列表项：emoji 图标 + 日期 + 统计行 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:layout_marginBottom="@dimen/spacing_s"
+    android:background="@drawable/bg_card"
+    android:foreground="?attr/selectableItemBackground"
     android:gravity="center_vertical"
+    android:minHeight="88dp"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="@dimen/spacing_l">
 
-    <TextView
-        android:id="@+id/tvEmoji"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="32sp" />
+    <ImageView
+        android:id="@+id/ivSport"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_session_icon"
+        android:contentDescription="@string/desc_sport_type"
+        android:padding="@dimen/spacing_s"
+        android:src="@drawable/ic_sport_run"
+        app:tint="@color/brand_primary" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/spacing_l"
         android:layout_weight="1"
         android:orientation="vertical">
-
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body_l"
             android:textStyle="bold" />
-
         <TextView
             android:id="@+id/tvStats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="14sp" />
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:textColor="@color/text_muted"
+            android:textSize="@dimen/text_body" />
     </LinearLayout>
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="@string/desc_view_detail"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="@color/text_muted" />
 </LinearLayout>

@@ -35,8 +35,11 @@ abstract class BaseActivity<VB : ViewBinding>(
     protected lateinit var binding: VB
         private set
 
-    /** 状态栏/导航栏图标是否为深色（浅色背景页用 true，深色/地图背景页覆写为 false） */
-    protected open fun statusBarDarkFont(): Boolean = true
+    /**
+     * 状态栏/导航栏图标是否为深色。
+     * 深色为主的全局主题下默认 false（浅色图标）；若个别浅色背景页需要深色图标则覆写为 true。
+     */
+    protected open fun statusBarDarkFont(): Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 刘海屏：允许内容延伸到刘海区域（API 28+）
@@ -55,6 +58,14 @@ abstract class BaseActivity<VB : ViewBinding>(
             .init()
 
         ActivityStack.push(this)
+    }
+
+    /**
+     * 带统一淡入淡出转场的页面跳转（150–300ms 区间内的平台过渡）
+     */
+    protected fun startActivityWithAnim(intent: android.content.Intent) {
+        startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
     override fun onDestroy() {

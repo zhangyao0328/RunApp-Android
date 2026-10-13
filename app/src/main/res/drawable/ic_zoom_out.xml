@@ -6,6 +6,6 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="#333333"
+        android:fillColor="@color/icon_on_map_button"
         android:pathData="M19,13H5v-2h14v2z" />
 </vector>

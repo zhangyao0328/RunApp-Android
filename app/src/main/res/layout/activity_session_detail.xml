@@ -2,7 +2,10 @@
 <!-- 会话详情页：轨迹地图 + 统计行 + AI 教练点评列表 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg_base"
+    android:clipToPadding="false"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,28 +21,42 @@
             <!-- 分享海报按钮：地图右上角（Strava 同款位置） -->
             <ImageButton
                 android:id="@+id/btnShare"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="@dimen/map_button_size"
+                android:layout_height="@dimen/map_button_size"
                 android:layout_gravity="top|end"
-                android:layout_margin="12dp"
+                android:layout_margin="@dimen/spacing_m"
                 android:background="@drawable/bg_map_button"
                 android:contentDescription="@string/desc_share"
                 android:elevation="4dp"
                 android:padding="11dp"
                 android:src="@drawable/ic_share" />
 
+            <!-- 导出轨迹按钮：分享按钮正下方（GPX / FIT 文件分享） -->
+            <ImageButton
+                android:id="@+id/btnExport"
+                android:layout_width="@dimen/map_button_size"
+                android:layout_height="@dimen/map_button_size"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="64dp"
+                android:layout_marginEnd="@dimen/spacing_m"
+                android:background="@drawable/bg_map_button"
+                android:contentDescription="@string/desc_export"
+                android:elevation="4dp"
+                android:padding="11dp"
+                android:src="@drawable/ic_export" />
+
             <LinearLayout
                 android:id="@+id/mapControls"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
-                android:layout_margin="12dp"
+                android:layout_margin="@dimen/spacing_m"
                 android:orientation="vertical">
 
                 <ImageButton
                     android:id="@+id/btnFitTrack"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="@dimen/map_button_size"
+                    android:layout_height="@dimen/map_button_size"
                     android:background="@drawable/bg_map_button"
                     android:contentDescription="@string/desc_fit_track"
                     android:elevation="4dp"
@@ -48,9 +65,9 @@
 
                 <ImageButton
                     android:id="@+id/btnZoomIn"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_width="@dimen/map_button_size"
+                    android:layout_height="@dimen/map_button_size"
+                    android:layout_marginTop="@dimen/spacing_s"
                     android:background="@drawable/bg_map_button"
                     android:contentDescription="@string/desc_zoom_in"
                     android:elevation="4dp"
@@ -59,9 +76,9 @@
 
                 <ImageButton
                     android:id="@+id/btnZoomOut"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_width="@dimen/map_button_size"
+                    android:layout_height="@dimen/map_button_size"
+                    android:layout_marginTop="@dimen/spacing_s"
                     android:background="@drawable/bg_map_button"
                     android:contentDescription="@string/desc_zoom_out"
                     android:elevation="4dp"
@@ -70,12 +87,28 @@
             </LinearLayout>
         </FrameLayout>
 
+        <TextView
+            android:id="@+id/tvDetailHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bg_surface"
+            android:paddingStart="@dimen/spacing_l"
+            android:paddingTop="@dimen/spacing_l"
+            android:paddingEnd="@dimen/spacing_l"
+            android:paddingBottom="@dimen/spacing_xs"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold" />
+
         <!-- 统计行：距离 / 时长 / 配速或速度 / 爬升 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:background="@color/bg_surface"
+            android:paddingHorizontal="@dimen/spacing_m"
+            android:paddingTop="@dimen/spacing_m"
+            android:paddingBottom="@dimen/spacing_xl">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -88,15 +121,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_distance"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    style="@style/RunPulse.Text.Caption" />
 
                 <TextView
                     android:id="@+id/tvDetailDistance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="14sp"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -111,15 +144,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_duration"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    style="@style/RunPulse.Text.Caption" />
 
                 <TextView
                     android:id="@+id/tvDetailDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="14sp"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -135,15 +168,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_avg_pace"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    style="@style/RunPulse.Text.Caption" />
 
                 <TextView
                     android:id="@+id/tvDetailPace"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="14sp"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -158,41 +191,102 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_elevation"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
+                    style="@style/RunPulse.Text.Caption" />
 
                 <TextView
                     android:id="@+id/tvDetailElevation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="14sp"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 第二行统计：平均步频 / 平均步幅（仅跑步时显示） -->
+        <LinearLayout
+            android:id="@+id/layoutCadence"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/bg_surface"
+            android:paddingHorizontal="@dimen/spacing_m"
+            android:paddingBottom="@dimen/spacing_xl"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_avg_cadence"
+                    style="@style/RunPulse.Text.Caption" />
+
+                <TextView
+                    android:id="@+id/tvDetailCadence"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_avg_stride"
+                    style="@style/RunPulse.Text.Caption" />
+
+                <TextView
+                    android:id="@+id/tvDetailStride"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?android:attr/listDivider" />
+            android:layout_height="@dimen/spacing_m"
+            android:background="@color/bg_base" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
+            android:background="@color/bg_surface"
+            android:paddingStart="@dimen/spacing_l"
+            android:paddingTop="@dimen/spacing_l"
+            android:paddingEnd="@dimen/spacing_l"
             android:text="@string/coach_title"
-            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_title"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvCoachEmpty"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:background="@color/bg_surface"
+            android:padding="@dimen/spacing_l"
             android:text="@string/coach_empty"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/text_muted"
             android:visibility="gone" />
 
         <!-- 嵌套在 ScrollView 内，关闭自身滚动交给外层 -->
@@ -200,6 +294,7 @@
             android:id="@+id/recyclerCoach"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/bg_surface"
             android:nestedScrollingEnabled="false"
             android:overScrollMode="never" />
     </LinearLayout>

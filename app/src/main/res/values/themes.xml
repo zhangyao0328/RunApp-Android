@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- RunPulse 主题：深色为主（深色活力风，能量橙主色）。
+     所有页面底色/文字色均由 design token（colors.xml）驱动，不再硬编码。 -->
 <resources>
-    <!-- 从简：使用 Material3 DayNight 主题，无 ActionBar -->
-    <style name="Theme.RunPulse" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.RunPulse" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/on_brand_primary</item>
+        <item name="colorPrimaryContainer">@color/brand_primary</item>
+        <item name="colorOnPrimaryContainer">@color/on_brand_primary</item>
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorOnSecondary">@color/on_brand_primary</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/bg_elevated</item>
+        <item name="colorOnSurfaceVariant">@color/text_muted</item>
+        <item name="colorBackgroundFloating">@color/bg_sheet</item>
+        <item name="colorError">@color/state_error</item>
+        <item name="android:colorBackground">@color/bg_base</item>
+        <item name="android:windowBackground">@color/bg_base</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_muted</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
 </resources>

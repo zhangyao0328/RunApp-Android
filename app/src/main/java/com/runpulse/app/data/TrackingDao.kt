@@ -23,6 +23,12 @@ interface TrackingDao {
     @Query("UPDATE sessions SET endTime = :endTime, isActive = 0 WHERE sessionId = :sessionId")
     suspend fun endSession(sessionId: String, endTime: Long)
 
+    @Query("UPDATE sessions SET isPaused = 1 WHERE sessionId = :sessionId")
+    suspend fun setSessionPaused(sessionId: String)
+
+    @Query("UPDATE sessions SET isPaused = 0, totalPausedMs = :totalPausedMs WHERE sessionId = :sessionId")
+    suspend fun setSessionResumed(sessionId: String, totalPausedMs: Long)
+
     // ---------- 上传侧 ----------
 
     /** 查某次运动未上传的点，按时间升序，limit 控制单批大小 */
@@ -39,6 +45,10 @@ interface TrackingDao {
     /** 所有还有未上传点的会话 id（可能跨多次运动，例如上次运动没传完） */
     @Query("SELECT DISTINCT sessionId FROM track_points WHERE uploaded = 0")
     suspend fun getSessionIdsWithPendingPoints(): List<String>
+
+    /** 对账式同步用：全量会话（活跃+已结束），Worker 逐会话确保 start/end 在云端闭环 */
+    @Query("SELECT * FROM sessions ORDER BY startTime ASC")
+    suspend fun getAllSessions(): List<SessionEntity>
 
     // ---------- UI 观察侧 ----------
 

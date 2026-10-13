@@ -11,18 +11,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.sqrt
 
 /**
- * 步频检测器：基于加速度计峰值检测算法
+ * 步频检测器：优先使用系统步数传感器，加速度计作为备选
  * 
- * 算法原理：
- * 1. 计算三轴加速度的合加速度（去除重力影响）
- * 2. 使用低通滤波平滑数据
- * 3. 检测峰值（步伐产生的加速度峰值）
- * 4. 根据峰值间隔计算步频（SPM: Steps Per Minute）
+ * 系统步数传感器（TYPE_STEP_DETECTOR）：
+ * - 由硬件/系统级算法检测步伐，准确率高、功耗低
+ * - 每检测到一步触发一次回调
  * 
- * 优化点：
- * - 动态阈值：根据历史数据自动调整检测灵敏度
- * - 最小步间隔：避免误检（最大支持 240 SPM）
- * - 滑动窗口：实时计算最近 10 秒的步频
+ * 加速度计备选方案：
+ * - 当设备不支持步数传感器时使用
+ * - 基于峰值检测算法
  */
 class CadenceDetector(private val context: Context) : SensorEventListener {
 
@@ -36,7 +33,7 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
         private const val WINDOW_SIZE_MS = 10_000L
         
         /** 初始检测阈值（m/s²） */
-        private const val INITIAL_THRESHOLD = 11.0f
+        private const val INITIAL_THRESHOLD = 10.5f
         
         /** 低通滤波系数（0-1，越小越平滑） */
         private const val LOW_PASS_ALPHA = 0.15f
@@ -46,7 +43,13 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
     }
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    
+    // 优先使用系统步数传感器
+    private val stepDetector = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    
+    /** 是否使用系统步数传感器 */
+    private var useStepDetector = false
 
     /** 实时步频（SPM） */
     private val _currentCadence = MutableStateFlow(0)
@@ -62,20 +65,14 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
     private var stepCount = 0
     private val stepTimes = mutableListOf<Long>()
     
-    // 滤波与阈值
+    // 加速度计滤波与阈值
     private var filteredMagnitude = 0f
     private var dynamicThreshold = INITIAL_THRESHOLD
     private var lastMagnitude = 0f
-    private var isRising = false
 
     /** 开始监听 */
     fun startListening() {
         if (isListening) return
-        
-        if (accelerometer == null) {
-            Log.e(TAG, "设备不支持加速度计")
-            return
-        }
         
         // 重置状态
         stepCount = 0
@@ -85,14 +82,33 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
         _currentCadence.value = 0
         _totalSteps.value = 0
         
-        // 注册传感器监听（SENSOR_DELAY_GAME 约 20ms，适合步频检测）
-        sensorManager.registerListener(
-            this,
-            accelerometer,
-            SensorManager.SENSOR_DELAY_GAME
-        )
-        isListening = true
-        Log.d(TAG, "步频检测已启动")
+        // 优先使用系统步数传感器
+        if (stepDetector != null) {
+            useStepDetector = true
+            sensorManager.registerListener(
+                this,
+                stepDetector,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+            isListening = true
+            Log.d(TAG, "步频检测已启动（系统步数传感器）")
+            return
+        }
+        
+        // 备选：加速度计
+        if (accelerometer != null) {
+            useStepDetector = false
+            sensorManager.registerListener(
+                this,
+                accelerometer,
+                SensorManager.SENSOR_DELAY_GAME
+            )
+            isListening = true
+            Log.d(TAG, "步频检测已启动（加速度计）")
+            return
+        }
+        
+        Log.e(TAG, "设备不支持步频检测（无步数传感器和加速度计）")
     }
 
     /** 停止监听 */
@@ -104,8 +120,43 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event?.sensor?.type != Sensor.TYPE_ACCELEROMETER) return
+        event ?: return
         
+        when (event.sensor.type) {
+            Sensor.TYPE_STEP_DETECTOR -> {
+                // 系统步数传感器：每次回调代表检测到一步
+                onStepDetected()
+            }
+            Sensor.TYPE_ACCELEROMETER -> {
+                // 加速度计：需要自己做峰值检测
+                onAccelerometerData(event)
+            }
+        }
+    }
+    
+    /** 系统步数传感器回调：检测到一步 */
+    private fun onStepDetected() {
+        val now = System.currentTimeMillis()
+        
+        // 检查最小步间隔（防止误触发）
+        if (now - lastStepTime < MIN_STEP_INTERVAL_MS) return
+        
+        stepCount++
+        _totalSteps.value = stepCount
+        stepTimes.add(now)
+        lastStepTime = now
+        
+        // 保留滑动窗口内的数据
+        stepTimes.removeAll { now - it > WINDOW_SIZE_MS }
+        
+        // 计算实时步频
+        updateCurrentCadence()
+        
+        Log.d(TAG, "检测到步伐! 总步数=$stepCount, 当前步频=${_currentCadence.value}")
+    }
+    
+    /** 加速度计数据处理 */
+    private fun onAccelerometerData(event: SensorEvent) {
         val x = event.values[0]
         val y = event.values[1]
         val z = event.values[2]
@@ -116,10 +167,11 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
         // 低通滤波平滑数据
         filteredMagnitude = filteredMagnitude + LOW_PASS_ALPHA * (magnitude - filteredMagnitude)
         
-        // 峰值检测：检测上升沿
-        val isPeak = detectPeak(filteredMagnitude)
+        // 峰值检测：检测上升沿穿越阈值
+        val isAboveThreshold = filteredMagnitude > dynamicThreshold
+        val wasAboveThreshold = lastMagnitude > dynamicThreshold
         
-        if (isPeak) {
+        if (isAboveThreshold && !wasAboveThreshold) {
             val now = System.currentTimeMillis()
             
             // 检查最小步间隔
@@ -135,6 +187,8 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
                 // 计算实时步频
                 updateCurrentCadence()
                 
+                Log.d(TAG, "检测到步伐(加速度计)! 总步数=$stepCount, 当前步频=${_currentCadence.value}")
+                
                 // 动态调整阈值
                 adjustThreshold(filteredMagnitude)
             }
@@ -144,31 +198,12 @@ class CadenceDetector(private val context: Context) : SensorEventListener {
     }
 
     /**
-     * 峰值检测：检测加速度的上升沿
-     * 原理：步伐落地时产生加速度峰值，上升沿超过阈值即为一步
-     */
-    private fun detectPeak(currentMagnitude: Float): Boolean {
-        val isAboveThreshold = currentMagnitude > dynamicThreshold
-        val wasRising = isRising
-        
-        // 更新上升沿状态
-        isRising = currentMagnitude > lastMagnitude
-        
-        // 检测：从低于阈值变为高于阈值，且处于上升沿
-        return isAboveThreshold && !wasRising && isRising
-    }
-
-    /**
      * 动态调整阈值：根据历史峰值自动调整灵敏度
-     * 避免不同用户/不同配速下的误检或漏检
      */
     private fun adjustThreshold(peakMagnitude: Float) {
-        // 新阈值 = 当前阈值 * (1 - 系数) + 峰值 * 系数
         dynamicThreshold = dynamicThreshold * (1 - THRESHOLD_ADJUST_FACTOR) + 
                           peakMagnitude * THRESHOLD_ADJUST_FACTOR
-        
-        // 限制阈值范围，避免过低（误检）或过高（漏检）
-        dynamicThreshold = dynamicThreshold.coerceIn(10.0f, 15.0f)
+        dynamicThreshold = dynamicThreshold.coerceIn(10.0f, 13.0f)
     }
 
     /** 更新实时步频 */

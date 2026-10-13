@@ -25,11 +25,23 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
         super.onCreate(savedInstanceState)
         fitSystemBars(top = binding.loginContainer)
 
+        // 初始化微信 SDK
+        WeChatAuthManager.init(this)
+
+        // 初始化一键登录 SDK
+        PhoneAuthManager.init(this)
+
         binding.btnLogin.setOnClickListener { attemptLogin() }
         binding.btnGoRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
+            startActivityWithAnim(Intent(this, RegisterActivity::class.java))
         }
         binding.btnSkip.setOnClickListener { finish() }
+
+        // 微信登录按钮
+        binding.btnWechatLogin.setOnClickListener { attemptWeChatLogin() }
+
+        // 一键登录按钮
+        binding.btnPhoneLogin.setOnClickListener { attemptPhoneLogin() }
     }
 
     private fun attemptLogin() {
@@ -72,7 +84,61 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         ActivityStack.finishAll()
+    }
+
+    // ---------- 微信登录 ----------
+
+    private fun attemptWeChatLogin() {
+        if (!WeChatAuthManager.isWeChatInstalled()) {
+            showError(getString(R.string.auth_error_wechat_not_installed))
+            return
+        }
+
+        hideError()
+        setLoading(true)
+        WeChatAuthManager.login { result ->
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    setLoading(false)
+                    result.onSuccess {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            getString(R.string.auth_login_success, it.displayName),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navigateToMain()
+                    }.onFailure { e ->
+                        showError(e.message ?: getString(R.string.auth_error_wechat_failed))
+                    }
+                }
+            }
+        }
+    }
+
+    // ---------- 一键登录 ----------
+
+    private fun attemptPhoneLogin() {
+        hideError()
+        setLoading(true)
+        PhoneAuthManager.login(this) { result ->
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    setLoading(false)
+                    result.onSuccess {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            getString(R.string.auth_login_success, it.displayName),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navigateToMain()
+                    }.onFailure { e ->
+                        showError(e.message ?: getString(R.string.auth_error_phone_failed))
+                    }
+                }
+            }
+        }
     }
 
     private fun setLoading(loading: Boolean) {

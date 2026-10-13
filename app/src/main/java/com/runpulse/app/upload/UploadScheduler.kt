@@ -1,6 +1,7 @@
 package com.runpulse.app.upload
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit
  */
 object UploadScheduler {
 
+    private const val TAG = "UploadScheduler"
     private const val PERIODIC_WORK_NAME = "upload_periodic"
     private const val ONE_TIME_WORK_NAME = "upload_one_time"
 
@@ -38,14 +40,20 @@ object UploadScheduler {
         )
     }
 
-    /** Service 攒批触发。KEEP：若已有排队中的一次性任务就不重复排队 */
+    /**
+     * Service/手动触发。REPLACE：取消同名旧链（可能因之前失败处在指数退避中——
+     * KEEP 会让新请求被丢弃，实测同步按钮"点了没反应"）并立即入队新任务。
+     * Worker 按数据库状态幂等，取消重排无副作用。
+     */
+    @Suppress("DEPRECATION") // REPLACE 在本项目依赖的 work-runtime 2.9.1 中仍可用
     fun triggerNow(context: Context) {
+        Log.d(TAG, "触发一次对账同步")
         val request = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(networkConstraint)
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(
             ONE_TIME_WORK_NAME,
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }
