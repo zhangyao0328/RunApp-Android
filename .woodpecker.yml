@@ -29,13 +29,11 @@ steps:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache openssh-client rsync
       - mkdir -p ~/.ssh
-      - echo "DEBUG: SSH_PRIVATE_KEY length: $(echo -n $SSH_PRIVATE_KEY | wc -c)"
       - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
-      - echo "DEBUG: id_rsa content:"
       - head -2 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
       - ls -la app/build/outputs/apk/release/
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=no -vvv" app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
     when:
       - status: success
