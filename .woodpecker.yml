@@ -11,8 +11,8 @@ steps:
   build:
     image: mingc/android-build-box:latest
     environment:
-      - RUNPULSE_BASE_URL=http://47.116.205.225:18081
-      - RUNPULSE_API_KEY=rp_7f8e9d2c1b4a6f8e0d3c5b7a9f2e4d6c
+      RUNPULSE_BASE_URL: http://47.116.205.225:18081
+      RUNPULSE_API_KEY: rp_7f8e9d2c1b4a6f8e0d3c5b7a9f2e4d6c
     commands:
       - echo "sdk.dir=/opt/android-sdk" > local.properties
       - echo "runpulse.baseUrl=$RUNPULSE_BASE_URL" >> local.properties
