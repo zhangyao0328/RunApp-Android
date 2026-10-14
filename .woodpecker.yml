@@ -26,8 +26,8 @@ steps:
       # 解码 keystore
       - echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
       - chmod +x gradlew
-      # 使用环境变量传递签名信息
-      - KEYSTORE_FILE=app/keystore.jks KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD KEY_ALIAS=runpulse KEY_PASSWORD=$KEY_PASSWORD ./gradlew assembleRelease --no-daemon
+      # 使用 Gradle 参数传递签名信息
+      - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD=$KEYSTORE_PASSWORD -PKEY_ALIAS=runpulse -PKEY_PASSWORD=$KEY_PASSWORD
       # 验证签名
       - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk || echo "APK 签名验证失败"
       # 重命名 APK 文件
