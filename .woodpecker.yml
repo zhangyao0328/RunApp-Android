@@ -4,11 +4,16 @@ when:
   - event: push
     branch: main
 
-# GitHub 出站连接偶发 EOF，延长 clone 插件重试窗口，避免网络抖动直接中断构建。
+# 服务器直连 github.com:443 不通，改用 GitHub 官方 SSH-over-443 通道克隆。
 clone:
   - name: git
-    image: woodpeckerci/plugin-git
+    image: woodpeckerci/plugin-git:2.10.1
     settings:
+      remote-ssh: ssh://git@ssh.github.com:443/zhangyao0328/RunApp-Android.git
+      use-ssh: true
+      ssh-key-private:
+        from_secret: GITHUB_READONLY_DEPLOY_KEY
+      ssh-host-key: "[ssh.github.com]:443 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
       attempts: 10
       backoff: 10s
 
