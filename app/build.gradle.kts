@@ -39,13 +39,21 @@ android {
         viewBinding = true
     }
 
-    // 签名配置 - 从环境变量或 local.properties 读取
+    // 签名配置 - 支持 Gradle -P 参数、环境变量、local.properties
     signingConfigs {
         create("release") {
-            val keystoreFile = System.getenv("KEYSTORE_FILE") ?: localProps.getProperty("keystore.file", "")
-            val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password", "")
-            val keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias", "runpulse")
-            val keyPassword = System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password", "")
+            val keystoreFile = (project.findProperty("KEYSTORE_FILE") as String?)
+                ?: System.getenv("KEYSTORE_FILE")
+                ?: localProps.getProperty("keystore.file", "")
+            val keystorePassword = (project.findProperty("KEYSTORE_PASSWORD") as String?)
+                ?: System.getenv("KEYSTORE_PASSWORD")
+                ?: localProps.getProperty("keystore.password", "")
+            val keyAlias = (project.findProperty("KEY_ALIAS") as String?)
+                ?: System.getenv("KEY_ALIAS")
+                ?: localProps.getProperty("key.alias", "runpulse")
+            val keyPassword = (project.findProperty("KEY_PASSWORD") as String?)
+                ?: System.getenv("KEY_PASSWORD")
+                ?: localProps.getProperty("key.password", "")
             
             if (keystoreFile.isNotEmpty() && keystorePassword.isNotEmpty()) {
                 storeFile = file(keystoreFile)

@@ -20,19 +20,24 @@ steps:
       KEY_PASSWORD:
         from_secret: KEY_PASSWORD
     commands:
+      # 配置 Android SDK
       - echo "sdk.dir=/opt/android-sdk" > local.properties
       - echo "runpulse.baseUrl=$RUNPULSE_BASE_URL" >> local.properties
       - echo "runpulse.apiKey=$RUNPULSE_API_KEY" >> local.properties
+      
       # 解码 keystore
       - echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
+      - ls -la app/keystore.jks
+      
+      # 构建签名 APK
       - chmod +x gradlew
-      # 使用 Gradle 参数传递签名信息
       - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD=$KEYSTORE_PASSWORD -PKEY_ALIAS=runpulse -PKEY_PASSWORD=$KEY_PASSWORD
-      # 验证签名（使用 find 找到 apksigner）
-      - find /opt -name apksigner -type f 2>/dev/null | head -1 | xargs -I {} {} verify --print-certs app/build/outputs/apk/release/app-release.apk || echo "APK 签名验证跳过"
-      # 重命名 APK 文件
-      - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-signed.apk
+      
+      # 检查输出
       - ls -la app/build/outputs/apk/release/
+      
+      # 重命名为固定文件名
+      - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-latest.apk
 
   # 上传 APK 到服务器
   upload:
@@ -41,17 +46,12 @@ steps:
       SSH_PRIVATE_KEY:
         from_secret: SSH_PRIVATE_KEY
     commands:
-      # 使用国内镜像源加速
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache openssh-client rsync
       - mkdir -p ~/.ssh
       - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
-      - ls -la app/build/outputs/apk/release/
-      # 上传签名后的 APK
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-signed.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
-      # 同时保留原始文件名
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-signed.apk root@47.116.205.225:/opt/runpulse/apk/
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/
     when:
       - status: success
