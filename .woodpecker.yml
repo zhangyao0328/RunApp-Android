@@ -28,10 +28,10 @@ steps:
       - chmod +x gradlew
       # 使用 Gradle 参数传递签名信息
       - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD=$KEYSTORE_PASSWORD -PKEY_ALIAS=runpulse -PKEY_PASSWORD=$KEY_PASSWORD
-      # 验证签名
-      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk || echo "APK 签名验证失败"
+      # 验证签名（使用 find 找到 apksigner）
+      - find /opt -name apksigner -type f 2>/dev/null | head -1 | xargs -I {} {} verify --print-certs app/build/outputs/apk/release/app-release.apk || echo "APK 签名验证跳过"
       # 重命名 APK 文件
-      - mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-signed.apk || true
+      - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-signed.apk
       - ls -la app/build/outputs/apk/release/
 
   # 上传 APK 到服务器
