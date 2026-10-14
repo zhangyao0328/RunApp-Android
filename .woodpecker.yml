@@ -71,6 +71,9 @@ steps:
     commands:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache curl
+      # 调试：检查环境变量
+      - echo "RUNPULSE_API_KEY is set: $([ -n "$RUNPULSE_API_KEY" ] && echo 'YES' || echo 'NO')"
+      - echo "RUNPULSE_API_KEY length: ${#RUNPULSE_API_KEY}"
       # Woodpecker v3 使用 CI_PIPELINE_NUMBER
       - VERSION_CODE=${CI_PIPELINE_NUMBER}
       - VERSION_NAME="1.0.${CI_PIPELINE_NUMBER}"
