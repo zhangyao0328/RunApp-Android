@@ -81,12 +81,6 @@ steps:
       # 更新日志
       - UPDATE_LOG="CI 自动构建 pipeline ${CI_PIPELINE_NUMBER}"
       # 调用 API 更新版本
-      - |
-        curl -X POST \
-          -H "X-API-Key: ${RUNPULSE_API_KEY}" \
-          -H "Content-Type: application/json" \
-          -d "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" \
-          --fail-with-body \
-          http://47.116.205.225:18080/api/v1/app/version/update
+      - curl -X POST -H "X-API-Key: ${RUNPULSE_API_KEY}" -H "Content-Type: application/json" -d "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" --fail-with-body http://47.116.205.225:18080/api/v1/app/version/update
     when:
       - status: success
