@@ -4,6 +4,14 @@ when:
   - event: push
     branch: main
 
+# GitHub 出站连接偶发 EOF，延长 clone 插件重试窗口，避免网络抖动直接中断构建。
+clone:
+  - name: git
+    image: woodpeckerci/plugin-git
+    settings:
+      attempts: 10
+      backoff: 10s
+
 steps:
   build:
     image: mingc/android-build-box:latest
