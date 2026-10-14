@@ -48,3 +48,32 @@ steps:
       - rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
     when:
       - status: success
+
+  # CI 构建成功后自动更新版本信息到数据库
+  update-version:
+    image: alpine:latest
+    environment:
+      RUNPULSE_API_KEY:
+        from_secret: RUNPULSE_API_KEY
+    commands:
+      - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+      - apk add --no-cache curl
+      # 使用 CI_BUILD_NUMBER 作为 versionCode，确保递增
+      - VERSION_CODE=${CI_BUILD_NUMBER}
+      # 从 git 获取版本名，格式：1.0.BUILD_NUMBER
+      - VERSION_NAME="1.0.${CI_BUILD_NUMBER}"
+      # 获取 APK 文件大小
+      - APK_SIZE=$(stat -c%s app/build/outputs/apk/release/runpulse-latest.apk 2>/dev/null || stat -f%z app/build/outputs/apk/release/runpulse-latest.apk)
+      # 计算 MD5
+      - APK_MD5=$(md5sum app/build/outputs/apk/release/runpulse-latest.apk | awk '{print $1}')
+      # 更新日志
+      - UPDATE_LOG="CI 自动构建 #${CI_BUILD_NUMBER}\n提交: ${CI_COMMIT_SHA:0:7}\n分支: ${CI_COMMIT_BRANCH}"
+      # 调用 API 更新版本
+      - |
+        curl -X POST \
+          -H "X-API-Key: ${RUNPULSE_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" \
+          http://47.116.205.225:18080/api/v1/app/version/update
+    when:
+      - status: success
