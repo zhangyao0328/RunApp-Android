@@ -9,3 +9,5 @@
 /captures
 /local.properties
 local.properties
+runpulse-release.keystore
+keystore.base64

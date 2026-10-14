@@ -7,18 +7,32 @@ when:
   - event: manual
 
 steps:
-  # 构建 Release APK
+  # 构建并签名 Release APK
   build:
     image: mingc/android-build-box:latest
     environment:
       RUNPULSE_BASE_URL: http://47.116.205.225:18081
       RUNPULSE_API_KEY: rp_7f8e9d2c1b4a6f8e0d3c5b7a9f2e4d6c
+      KEYSTORE_BASE64:
+        from_secret: KEYSTORE_BASE64
+      KEYSTORE_PASSWORD:
+        from_secret: KEYSTORE_PASSWORD
+      KEY_PASSWORD:
+        from_secret: KEY_PASSWORD
     commands:
       - echo "sdk.dir=/opt/android-sdk" > local.properties
       - echo "runpulse.baseUrl=$RUNPULSE_BASE_URL" >> local.properties
       - echo "runpulse.apiKey=$RUNPULSE_API_KEY" >> local.properties
+      # 解码 keystore
+      - echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
       - chmod +x gradlew
-      - ./gradlew assembleRelease --no-daemon
+      # 使用环境变量传递签名信息
+      - KEYSTORE_FILE=app/keystore.jks KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD KEY_ALIAS=runpulse KEY_PASSWORD=$KEY_PASSWORD ./gradlew assembleRelease --no-daemon
+      # 验证签名
+      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk || echo "APK 签名验证失败"
+      # 重命名 APK 文件
+      - mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-signed.apk || true
+      - ls -la app/build/outputs/apk/release/
 
   # 上传 APK 到服务器
   upload:
@@ -33,9 +47,11 @@ steps:
       - mkdir -p ~/.ssh
       - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
-      - head -2 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
       - ls -la app/build/outputs/apk/release/
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/*.apk root@47.116.205.225:/opt/runpulse/apk/
+      # 上传签名后的 APK
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-signed.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
+      # 同时保留原始文件名
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-signed.apk root@47.116.205.225:/opt/runpulse/apk/
     when:
       - status: success

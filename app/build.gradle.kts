@@ -39,10 +39,31 @@ android {
         viewBinding = true
     }
 
+    // 签名配置 - 从环境变量或 local.properties 读取
+    signingConfigs {
+        create("release") {
+            val keystoreFile = System.getenv("KEYSTORE_FILE") ?: localProps.getProperty("keystore.file", "")
+            val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password", "")
+            val keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias", "runpulse")
+            val keyPassword = System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password", "")
+            
+            if (keystoreFile.isNotEmpty() && keystorePassword.isNotEmpty()) {
+                storeFile = file(keystoreFile)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // 如果签名配置存在则使用
+            if (signingConfigs.findByName("release")?.storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
