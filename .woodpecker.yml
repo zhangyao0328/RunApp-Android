@@ -78,7 +78,7 @@ steps:
         else
           echo "RUNPULSE_API_KEY is set: NO"
         fi
-      - echo "RUNPULSE_API_KEY length: ${#RUNPULSE_API_KEY}"
+        echo "RUNPULSE_API_KEY length: ${#RUNPULSE_API_KEY}"
       # Woodpecker v3 使用 CI_PIPELINE_NUMBER
       - VERSION_CODE=${CI_PIPELINE_NUMBER}
       - VERSION_NAME="1.0.${CI_PIPELINE_NUMBER}"
