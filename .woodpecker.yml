@@ -58,16 +58,15 @@ steps:
     commands:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache curl
-      # 使用 CI_BUILD_NUMBER 作为 versionCode，确保递增
-      - VERSION_CODE=${CI_BUILD_NUMBER}
-      # 从 git 获取版本名，格式：1.0.BUILD_NUMBER
-      - VERSION_NAME="1.0.${CI_BUILD_NUMBER}"
+      # Woodpecker v3 使用 CI_PIPELINE_NUMBER
+      - VERSION_CODE=${CI_PIPELINE_NUMBER}
+      - VERSION_NAME="1.0.${CI_PIPELINE_NUMBER}"
       # 获取 APK 文件大小
       - APK_SIZE=$(stat -c%s app/build/outputs/apk/release/runpulse-latest.apk 2>/dev/null || stat -f%z app/build/outputs/apk/release/runpulse-latest.apk)
       # 计算 MD5
       - APK_MD5=$(md5sum app/build/outputs/apk/release/runpulse-latest.apk | awk '{print $1}')
       # 更新日志
-      - UPDATE_LOG="CI 自动构建 #${CI_BUILD_NUMBER}\n提交: ${CI_COMMIT_SHA:0:7}\n分支: ${CI_COMMIT_BRANCH}"
+      - UPDATE_LOG="CI 自动构建 #${CI_PIPELINE_NUMBER}"
       # 调用 API 更新版本
       - |
         curl -X POST \
