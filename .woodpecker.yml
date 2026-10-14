@@ -1,18 +1,16 @@
 # Woodpecker CI 配置 - RunPulse Android 构建
-# 触发条件：推送到 main 分支或手动触发
 
 when:
   - event: push
     branch: main
-  - event: manual
 
 steps:
-  # 构建并签名 Release APK
   build:
     image: mingc/android-build-box:latest
     environment:
       RUNPULSE_BASE_URL: http://47.116.205.225:18081
-      RUNPULSE_API_KEY: rp_7f8e9d2c1b4a6f8e0d3c5b7a9f2e4d6c
+      RUNPULSE_API_KEY:
+        from_secret: RUNPULSE_API_KEY
       KEYSTORE_BASE64:
         from_secret: KEYSTORE_BASE64
       KEYSTORE_PASSWORD:
@@ -20,26 +18,20 @@ steps:
       KEY_PASSWORD:
         from_secret: KEY_PASSWORD
     commands:
-      # 配置 Android SDK
       - echo "sdk.dir=/opt/android-sdk" > local.properties
       - echo "runpulse.baseUrl=$RUNPULSE_BASE_URL" >> local.properties
       - echo "runpulse.apiKey=$RUNPULSE_API_KEY" >> local.properties
-      
-      # 解码 keystore
-      - echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
-      - ls -la app/keystore.jks
-      
-      # 构建签名 APK
+      - test -n "$KEYSTORE_BASE64"
+      - test -n "$KEYSTORE_PASSWORD"
+      - test -n "$KEY_PASSWORD"
+      - printf '%s' "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
+      - test -s app/keystore.jks
       - chmod +x gradlew
-      - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD=$KEYSTORE_PASSWORD -PKEY_ALIAS=runpulse -PKEY_PASSWORD=$KEY_PASSWORD
-      
-      # 检查输出
-      - ls -la app/build/outputs/apk/release/
-      
-      # 重命名为固定文件名
+      - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
+      - test -f app/build/outputs/apk/release/app-release.apk
+      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
       - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-latest.apk
 
-  # 上传 APK 到服务器
   upload:
     image: alpine:latest
     environment:
@@ -49,9 +41,10 @@ steps:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache openssh-client rsync
       - mkdir -p ~/.ssh
-      - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+      - printf '%s' "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=no" app/build/outputs/apk/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/
+      - test -f app/build/outputs/apk/release/runpulse-latest.apk
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
     when:
       - status: success

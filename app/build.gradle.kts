@@ -56,7 +56,9 @@ android {
                 ?: localProps.getProperty("key.password", "")
             
             if (keystoreFile.isNotEmpty() && keystorePassword.isNotEmpty()) {
-                storeFile = file(keystoreFile)
+                // 路径相对于 Android 工程根目录解析，避免 :app 子项目把
+                // `app/keystore.jks` 错误解析成 `app/app/keystore.jks`。
+                storeFile = rootProject.file(keystoreFile)
                 storePassword = keystorePassword
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
