@@ -65,21 +65,15 @@ steps:
   # CI 构建成功后自动更新版本信息到数据库
   update-version:
     image: alpine:latest
-    environment:
-      RUNPULSE_API_KEY:
-        from_secret: RUNPULSE_API_KEY
     commands:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache curl
+      # 硬编码 API Key（临时测试）
+      - RUNPULSE_API_KEY="runpulse-api-key-2024"
       # 调试：检查环境变量
       - |
         echo "CI_PIPELINE_NUMBER=$CI_PIPELINE_NUMBER"
-        if [ -n "$RUNPULSE_API_KEY" ]; then
-          echo "RUNPULSE_API_KEY is set: YES"
-        else
-          echo "RUNPULSE_API_KEY is set: NO"
-        fi
-        echo "RUNPULSE_API_KEY length: ${#RUNPULSE_API_KEY}"
+        echo "RUNPULSE_API_KEY=$RUNPULSE_API_KEY"
       # Woodpecker v3 使用 CI_PIPELINE_NUMBER
       - VERSION_CODE=${CI_PIPELINE_NUMBER}
       - VERSION_NAME="1.0.${CI_PIPELINE_NUMBER}"
