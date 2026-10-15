@@ -65,7 +65,9 @@ steps:
   # CI 构建成功后自动更新版本信息到数据库
   update-version:
     image: alpine:latest
-    secrets: [ RUNPULSE_API_KEY ]
+    environment:
+      RUNPULSE_API_KEY:
+        from_secret: RUNPULSE_API_KEY
     commands:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache curl
