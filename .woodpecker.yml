@@ -80,8 +80,8 @@ steps:
       - echo "RUNPULSE_API_KEY=$RUNPULSE_API_KEY"
       - echo "VERSION_CODE=$VERSION_CODE"
       # 生成 JSON
-      - echo "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" > /tmp/version.json
+      - 'echo "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" > /tmp/version.json'
       - cat /tmp/version.json
-      - curl -X POST -H "X-API-Key: $RUNPULSE_API_KEY" -H "Content-Type: application/json" -d @/tmp/version.json --fail-with-body http://47.116.205.225:18080/api/v1/app/version/update
+      - 'curl -X POST -H "X-API-Key: $RUNPULSE_API_KEY" -H "Content-Type: application/json" -d @/tmp/version.json --fail-with-body http://47.116.205.225:18080/api/v1/app/version/update'
     when:
       - status: success
