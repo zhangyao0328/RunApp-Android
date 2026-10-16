@@ -40,7 +40,9 @@ steps:
       - printf '%s' "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
       - test -s app/keystore.jks
       - chmod +x gradlew
-      - ./gradlew assembleRelease --no-daemon -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
+      # -PVERSION_CODE 与下方 update-version 步骤的 CI_PIPELINE_NUMBER 保持一致，
+      # 保证 APK manifest 版本号与数据库版本记录一致（否则下载安装后版本不变，升级无效）
+      - ./gradlew assembleRelease --no-daemon -PVERSION_CODE=$CI_PIPELINE_NUMBER -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
       - test -f app/build/outputs/apk/release/app-release.apk
       - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
       - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-latest.apk

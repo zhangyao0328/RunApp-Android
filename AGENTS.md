@@ -7,7 +7,7 @@ Kotlin + Room + WorkManager + Retrofit + Coroutines，UI 为传统 View 体系�
 ## 工程规则
 
 1. **依赖版本统一维护在 `gradle/libs.versions.toml`（Version Catalog）**，不要散写在 `build.gradle.kts`。
-2. BuildConfig / API Key 等从 `local.properties` 注入，禁止硬编码。
+2. BuildConfig / API Key 等从 `local.properties` 注入，禁止硬编码。APK 版本号（versionCode/versionName）由 CI 通过 `-PVERSION_CODE=$CI_PIPELINE_NUMBER` 注入，须与 `.woodpecker.yml` update-version 步骤写入数据库的版本保持一致。
 3. 采集逻辑核心在 `tracking/`（前台 Service + FusedLocation，点即落盘），改动必须保持：
    - 前台 Service 保活与通知渠道不回归；
    - Room 写入与上传状态机幂等（`upload/UploadWorker` 失败不标记已上传，靠 retry 补传）。
