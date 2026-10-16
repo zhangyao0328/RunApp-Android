@@ -65,23 +65,26 @@ steps:
   # CI 构建成功后自动更新版本信息到数据库
   update-version:
     image: alpine:latest
+    environment:
+      RUNPULSE_API_KEY:
+        from_secret: RUNPULSE_API_KEY
     commands:
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-      - apk add --no-cache curl
-      # 调试：检查环境变量
-      - echo "CI_PIPELINE_NUMBER=$CI_PIPELINE_NUMBER"
-      # 使用 export 确保变量在后续命令中可用
-      - export RUNPULSE_API_KEY="runpulse-api-key-2024"
-      - export VERSION_CODE=${CI_PIPELINE_NUMBER}
-      - export VERSION_NAME="1.0.${CI_PIPELINE_NUMBER}"
-      - export APK_SIZE=$(stat -c%s app/build/outputs/apk/release/runpulse-latest.apk 2>/dev/null || stat -f%z app/build/outputs/apk/release/runpulse-latest.apk)
-      - export APK_MD5=$(md5sum app/build/outputs/apk/release/runpulse-latest.apk | awk '{print $1}')
-      - export UPDATE_LOG="CI 自动构建 pipeline ${CI_PIPELINE_NUMBER}"
-      - echo "RUNPULSE_API_KEY=$RUNPULSE_API_KEY"
-      - echo "VERSION_CODE=$VERSION_CODE"
-      # 生成 JSON
-      - 'echo "{\"versionCode\": ${VERSION_CODE}, \"versionName\": \"${VERSION_NAME}\", \"apkUrl\": \"http://47.116.205.225:18080/apk/runpulse-latest.apk\", \"apkSize\": ${APK_SIZE}, \"apkMd5\": \"${APK_MD5}\", \"updateLog\": \"${UPDATE_LOG}\", \"forceUpdate\": false}" > /tmp/version.json'
+      - apk add --no-cache curl jq
+      - APK=app/build/outputs/apk/release/runpulse-latest.apk
+      - VERSION_CODE=$CI_PIPELINE_NUMBER
+      - APK_SIZE=$(stat -c%s $APK)
+      - APK_MD5=$(md5sum $APK | awk '{print $1}')
+      - |
+        jq -n \
+          --argjson code "$VERSION_CODE" \
+          --arg name "1.0.$VERSION_CODE" \
+          --argjson size "$APK_SIZE" \
+          --arg md5 "$APK_MD5" \
+          --arg log "CI 自动构建 pipeline $VERSION_CODE" \
+          '{versionCode:$code, versionName:$name, apkUrl:"http://47.116.205.225:18080/apk/runpulse-latest.apk", apkSize:$size, apkMd5:$md5, updateLog:$log, forceUpdate:false}' \
+          > /tmp/version.json
       - cat /tmp/version.json
-      - 'curl -X POST -H "X-API-Key: $RUNPULSE_API_KEY" -H "Content-Type: application/json" -d @/tmp/version.json --fail-with-body http://47.116.205.225:18080/api/v1/app/version/update'
+      - curl -sS -X POST -H "X-API-Key:$RUNPULSE_API_KEY" -H "Content-Type:application/json" -d @/tmp/version.json --fail-with-body http://47.116.205.225:18080/api/v1/app/version/update
     when:
       - status: success
