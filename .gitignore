@@ -6,8 +6,14 @@
 /.idea/
 /app/build/
 /build/
+# Kotlin 增量编译缓存（AGP 8+）
+/.kotlin/
+# Android Studio Generate Signed Bundle/APK 向导的默认输出目录（不经 app/build）
+/app/release/
+/app/*/release/
 /captures
 /local.properties
 local.properties
 runpulse-release.keystore
 keystore.base64
+app/keystore.jks
