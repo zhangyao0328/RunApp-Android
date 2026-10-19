@@ -44,22 +44,28 @@ steps:
       - chmod +x gradlew
       # -PVERSION_CODE 与下方 update-version 步骤的 CI_PIPELINE_NUMBER 保持一致，
       # 保证 APK manifest 版本号与数据库版本记录一致（否则下载安装后版本不变，升级无效）
-      # 渠道选择：push 事件默认 official；手动 Run Pipeline 时可通过变量 CHANNEL
-      # 指定（official/xiaomi/huawei/oppo/vivo/yyb），只构建指定渠道，避免全量打包
+      # 渠道选择：手动 Run Pipeline 时通过变量 CHANNEL 指定
+      # （official/xiaomi/huawei/oppo/vivo/yyb），缺省 official。
+      # 注意：Woodpecker 每条 command 是独立 shell，变量不能跨命令传递，
+      # 所以渠道解析 + 构建 + 签名校验必须放在同一个块内执行
       - |
+        set -e
         CHANNEL="${CHANNEL:-official}"
         case "$CHANNEL" in
-          official|xiaomi|huawei|oppo|vivo|yyb) ;;
+          official) VARIANT=Official ;;
+          xiaomi)   VARIANT=Xiaomi ;;
+          huawei)   VARIANT=Huawei ;;
+          oppo)     VARIANT=Oppo ;;
+          vivo)     VARIANT=Vivo ;;
+          yyb)      VARIANT=Yyb ;;
           *) echo "未知渠道 CHANNEL=$CHANNEL（可选：official/xiaomi/huawei/oppo/vivo/yyb）"; exit 1 ;;
         esac
-        export CHANNEL
-        export VARIANT="$(printf '%s' "$CHANNEL" | sed 's/^\(\.\)/\1/' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
         echo ">>> 构建渠道：$CHANNEL（任务 assemble${VARIANT}Release）"
-      - ./gradlew "assemble${VARIANT}Release" --no-daemon -PVERSION_CODE=$CI_PIPELINE_NUMBER -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
-      - APK=$(ls app/build/outputs/apk/${CHANNEL}/release/runpulse-${CHANNEL}-release-*.apk)
-      - test -f "$APK"
-      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs "$APK"
-      - cp "$APK" app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk
+        ./gradlew "assemble${VARIANT}Release" --no-daemon -PVERSION_CODE=$CI_PIPELINE_NUMBER -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
+        APK=$(ls "app/build/outputs/apk/${CHANNEL}/release/runpulse-${CHANNEL}-release-"*.apk)
+        test -f "$APK"
+        $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs "$APK"
+        cp "$APK" "app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk"
 
   upload:
     image: alpine:latest
@@ -73,12 +79,16 @@ steps:
       - printf '%s' "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
-      - test -f app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-${CHANNEL}.apk
-      # official 渠道同时覆盖 runpulse-latest.apk（应用内更新检查固定下载这个地址）
+      # 本步骤是独立容器：手动触发时 CHANNEL 由 pipeline 变量注入，push 触发时缺省 official。
+      # 同样因变量不跨命令传递，整条上传逻辑放在一个块内
       - |
+        set -e
+        CHANNEL="${CHANNEL:-official}"
+        test -f "app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk"
+        rsync -avz -e "ssh -o StrictHostKeyChecking=yes" "app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk" "root@47.116.205.225:/opt/runpulse/apk/runpulse-${CHANNEL}.apk"
+        # official 渠道同时覆盖 runpulse-latest.apk（应用内更新检查固定下载这个地址）
         if [ "$CHANNEL" = "official" ]; then
-          rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/official/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
+          rsync -avz -e "ssh -o StrictHostKeyChecking=yes" "app/build/outputs/apk/official/release/runpulse-latest.apk" "root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk"
         fi
     when:
       - status: success
