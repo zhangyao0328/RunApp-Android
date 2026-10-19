@@ -3,6 +3,8 @@
 when:
   - event: push
     branch: main
+  # 允许在 Web UI 手动 Run Pipeline 并传入 CHANNEL 变量指定渠道
+  - event: manual
 
 # 服务器直连 github.com:443 不通，改用 GitHub 官方 SSH-over-443 通道克隆。
 clone:
@@ -42,10 +44,22 @@ steps:
       - chmod +x gradlew
       # -PVERSION_CODE 与下方 update-version 步骤的 CI_PIPELINE_NUMBER 保持一致，
       # 保证 APK manifest 版本号与数据库版本记录一致（否则下载安装后版本不变，升级无效）
-      - ./gradlew assembleRelease --no-daemon -PVERSION_CODE=$CI_PIPELINE_NUMBER -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
-      - test -f app/build/outputs/apk/release/app-release.apk
-      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
-      - cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/runpulse-latest.apk
+      # 渠道选择：push 事件默认 official；手动 Run Pipeline 时可通过变量 CHANNEL
+      # 指定（official/xiaomi/huawei/oppo/vivo/yyb），只构建指定渠道，避免全量打包
+      - |
+        CHANNEL="${CHANNEL:-official}"
+        case "$CHANNEL" in
+          official|xiaomi|huawei|oppo|vivo|yyb) ;;
+          *) echo "未知渠道 CHANNEL=$CHANNEL（可选：official/xiaomi/huawei/oppo/vivo/yyb）"; exit 1 ;;
+        esac
+        export CHANNEL
+        export VARIANT="$(printf '%s' "$CHANNEL" | sed 's/^\(\.\)/\1/' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
+        echo ">>> 构建渠道：$CHANNEL（任务 assemble${VARIANT}Release）"
+      - ./gradlew "assemble${VARIANT}Release" --no-daemon -PVERSION_CODE=$CI_PIPELINE_NUMBER -PKEYSTORE_FILE=app/keystore.jks -PKEYSTORE_PASSWORD="$KEYSTORE_PASSWORD" -PKEY_ALIAS=runpulse -PKEY_PASSWORD="$KEY_PASSWORD"
+      - APK=$(ls app/build/outputs/apk/${CHANNEL}/release/runpulse-${CHANNEL}-release-*.apk)
+      - test -f "$APK"
+      - $ANDROID_HOME/build-tools/34.0.0/apksigner verify --print-certs "$APK"
+      - cp "$APK" app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk
 
   upload:
     image: alpine:latest
@@ -59,8 +73,13 @@ steps:
       - printf '%s' "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
       - ssh-keyscan -H 47.116.205.225 >> ~/.ssh/known_hosts
-      - test -f app/build/outputs/apk/release/runpulse-latest.apk
-      - rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
+      - test -f app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk
+      - rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/${CHANNEL}/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-${CHANNEL}.apk
+      # official 渠道同时覆盖 runpulse-latest.apk（应用内更新检查固定下载这个地址）
+      - |
+        if [ "$CHANNEL" = "official" ]; then
+          rsync -avz -e "ssh -o StrictHostKeyChecking=yes" app/build/outputs/apk/official/release/runpulse-latest.apk root@47.116.205.225:/opt/runpulse/apk/runpulse-latest.apk
+        fi
     when:
       - status: success
 
@@ -71,9 +90,12 @@ steps:
       RUNPULSE_API_KEY:
         from_secret: RUNPULSE_API_KEY
     commands:
+      # 只有 official 渠道需要更新数据库版本记录（应用内 OTA 更新走 runpulse-latest.apk），
+      # 其他渠道构建到这里直接成功结束
+      - test "${CHANNEL:-official}" = "official" || { echo "非 official 渠道，跳过版本更新"; exit 0; }
       - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
       - apk add --no-cache curl jq
-      - APK=app/build/outputs/apk/release/runpulse-latest.apk
+      - APK=app/build/outputs/apk/official/release/runpulse-latest.apk
       - VERSION_CODE=$CI_PIPELINE_NUMBER
       - APK_SIZE=$(stat -c%s $APK)
       - APK_MD5=$(md5sum $APK | awk '{print $1}')

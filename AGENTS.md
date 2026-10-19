@@ -21,4 +21,4 @@ Kotlin + Room + WorkManager + Retrofit + Coroutines，UI 为传统 View 体系�
 ./gradlew test                   # 单元测试
 ```
 
-- 无 gradle-wrapper.jar，导入 Android Studio 会自动下载 wrapper；命令行需本机已有对应 Gradle。
+- 已带 gradle-wrapper.jar（Gradle 8.9，腾讯云镜像），命令行直接 `./gradlew`；需 JDK 17+。
